@@ -3,6 +3,7 @@ pub mod webdriver {
     pub mod session;
 }
 pub mod session;
+//pub mod model;
 pub mod models {
     pub mod local;
     pub mod remote;
