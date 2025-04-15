@@ -382,11 +382,10 @@ impl PointerCommonProperties {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum Origin {
-    #[serde(rename = "viewport")]
-    Viewport,
-    #[serde(rename = "pointer")]
-    Pointer,
+    Viewport(String),
+    Pointer(String),
     ElementOrigin(ElementOrigin),
 }
 
