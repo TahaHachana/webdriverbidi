@@ -1,13 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-// --------------------------------------------------
-
 use crate::error::CommandError;
 use crate::session::WebDriverBiDiSession;
 
-// --------------------------------------------------
-
-/// Sends a command to the WebDriver BiDi session and processes the result.
+/// Send a command to the WebDriver BiDi session and processes the result.
 pub async fn send_command<C, R>(
     session: &mut WebDriverBiDiSession,
     command: C,

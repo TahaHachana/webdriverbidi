@@ -38,8 +38,6 @@ pub enum CommandError {
     Other(String),
 }
 
-// --------------------------------------------------
-
 /// Errors that can occur when starting a WebDriver session.
 #[derive(Error, Debug)]
 pub enum SessionError {

@@ -1,18 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-// --------------------------------------------------
-
 use super::id;
 use super::utils;
+
 use crate::define_command;
 use crate::error::CommandError;
-use crate::local::result_data::EmptyResult;
-use crate::local::script::EvaluateResult;
-use crate::local::script::*;
-use crate::remote::script::*;
+use crate::model::result::EmptyResult;
+use crate::model::script::*;
 use crate::session::WebDriverBiDiSession;
-
-// --------------------------------------------------
 
 // https://w3c.github.io/webdriver-bidi/#command-script-addPreloadScript
 define_command!(

@@ -1,3 +1,797 @@
+Command = {
+  id: js-uint,
+  CommandData,
+  Extensible,
+}
+
+CommandData = (
+  BrowserCommand //
+  BrowsingContextCommand //
+  EmulationCommand //
+  InputCommand //
+  NetworkCommand //
+  ScriptCommand //
+  SessionCommand //
+  StorageCommand //
+  WebExtensionCommand
+)
+
+EmptyParams = {
+   Extensible
+}
+
+Message = (
+  CommandResponse /
+  ErrorResponse /
+  Event
+)
+
+CommandResponse = {
+  type: "success",
+  id: js-uint,
+  result: ResultData,
+  Extensible
+}
+
+ErrorResponse = {
+  type: "error",
+  id: js-uint / null,
+  error: ErrorCode,
+  message: text,
+  ? stacktrace: text,
+  Extensible
+}
+
+ResultData = (
+  BrowsingContextResult /
+  EmptyResult /
+  NetworkResult /
+  ScriptResult /
+  SessionResult /
+  StorageResult /
+  WebExtensionResult
+)
+
+EmptyResult = {
+  Extensible
+}
+
+Event = {
+  type: "event",
+  EventData,
+  Extensible
+}
+
+EventData = (
+  BrowsingContextEvent //
+  InputEvent //
+  LogEvent //
+  NetworkEvent //
+  ScriptEvent
+)
+
+Extensible = (*text => any)
+
+js-int = -9007199254740991..9007199254740991
+js-uint = 0..9007199254740991
+
+ErrorCode = "invalid argument" /
+            "invalid selector" /
+            "invalid session id" /
+            "invalid web extension" /
+            "move target out of bounds" /
+            "no such alert" /
+            "no such element" /
+            "no such frame" /
+            "no such handle" /
+            "no such history entry" /
+            "no such intercept" /
+            "no such node" /
+            "no such request" /
+            "no such script" /
+            "no such storage partition" /
+            "no such user context" /
+            "no such web extension" /
+            "session not created" /
+            "unable to capture screen" /
+            "unable to close browser" /
+            "unable to set cookie" /
+            "unable to set file input" /
+            "underspecified storage partition" /
+            "unknown command" /
+            "unknown error" /
+            "unsupported operation"
+
+SessionCommand = (
+  session.End //
+  session.New //
+  session.Status //
+  session.Subscribe //
+  session.Unsubscribe
+)
+
+SessionResult = (
+   session.NewResult /
+   session.StatusResult /
+   session.SubscribeResult
+)
+
+session.CapabilitiesRequest = {
+  ? alwaysMatch: session.CapabilityRequest,
+  ? firstMatch: [*session.CapabilityRequest]
+}
+
+session.CapabilityRequest = {
+  ? acceptInsecureCerts: bool,
+  ? browserName: text,
+  ? browserVersion: text,
+  ? platformName: text,
+  ? proxy: session.ProxyConfiguration,
+  ? unhandledPromptBehavior: session.UserPromptHandler,
+  Extensible
+}
+
+session.ProxyConfiguration = {
+   session.AutodetectProxyConfiguration //
+   session.DirectProxyConfiguration //
+   session.ManualProxyConfiguration //
+   session.PacProxyConfiguration //
+   session.SystemProxyConfiguration
+}
+
+session.AutodetectProxyConfiguration = (
+   proxyType: "autodetect",
+   Extensible
+)
+
+session.DirectProxyConfiguration = (
+   proxyType: "direct",
+   Extensible
+)
+
+session.ManualProxyConfiguration = (
+   proxyType: "manual",
+   ? ftpProxy: text,
+   ? httpProxy: text,
+   ? sslProxy: text,
+   ? session.SocksProxyConfiguration,
+   ? noProxy: [*text],
+   Extensible
+)
+
+session.SocksProxyConfiguration = (
+   socksProxy: text,
+   socksVersion: 0..255,
+)
+
+session.PacProxyConfiguration = (
+   proxyType: "pac",
+   proxyAutoconfigUrl: text,
+   Extensible
+)
+
+session.SystemProxyConfiguration = (
+   proxyType: "system",
+   Extensible
+)
+
+
+session.UserPromptHandler = {
+  ? alert: session.UserPromptHandlerType,
+  ? beforeUnload: session.UserPromptHandlerType,
+  ? confirm: session.UserPromptHandlerType,
+  ? default: session.UserPromptHandlerType,
+  ? file: session.UserPromptHandlerType,
+  ? prompt: session.UserPromptHandlerType,
+}
+
+session.UserPromptHandlerType = "accept" / "dismiss" / "ignore";
+
+session.Subscription = text
+
+session.SubscriptionRequest = {
+  events: [+text],
+  ? contexts: [+browsingContext.BrowsingContext],
+  ? userContexts: [+browser.UserContext],
+}
+
+session.UnsubscribeByIDRequest = {
+  subscriptions: [+session.Subscription],
+}
+
+session.UnsubscribeByAttributesRequest = {
+  events: [+text],
+  ? contexts: [+browsingContext.BrowsingContext],
+}
+
+session.Status = (
+  method: "session.status",
+  params: EmptyParams,
+)
+
+session.StatusResult = {
+  ready: bool,
+  message: text,
+}
+
+session.New = (
+  method: "session.new",
+  params: session.NewParameters
+)
+
+session.NewParameters = {
+  capabilities: session.CapabilitiesRequest
+}
+
+session.NewResult = {
+  sessionId: text,
+  capabilities: {
+    acceptInsecureCerts: bool,
+    browserName: text,
+    browserVersion: text,
+    platformName: text,
+    setWindowRect: bool,
+    userAgent: text,
+    ? proxy: session.ProxyConfiguration,
+    ? unhandledPromptBehavior: session.UserPromptHandler,
+    ? webSocketUrl: text,
+    Extensible
+  }
+}
+
+session.End = (
+  method: "session.end",
+  params: EmptyParams
+)
+
+
+session.Subscribe = (
+  method: "session.subscribe",
+  params: session.SubscriptionRequest
+)
+
+session.SubscribeResult = {
+  subscription: session.Subscription,
+}
+
+session.Unsubscribe = (
+  method: "session.unsubscribe",
+  params: session.UnsubscribeParameters,
+)
+
+session.UnsubscribeParameters = session.UnsubscribeByAttributesRequest / session.UnsubscribeByIDRequest
+
+BrowserCommand = (
+  browser.Close //
+  browser.CreateUserContext //
+  browser.GetClientWindows //
+  browser.GetUserContexts //
+  browser.RemoveUserContext //
+  browser.SetClientWindowState
+)
+
+BrowserResult = (
+   browser.CreateUserContextResult /
+   browser.GetUserContextsResult
+)
+
+browser.ClientWindow = text;
+
+browser.ClientWindowInfo = {
+  active: bool,
+  clientWindow: browser.ClientWindow,
+  height: js-uint,
+  state: "fullscreen" / "maximized" / "minimized" / "normal",
+  width: js-uint,
+  x: js-int,
+  y: js-int,
+}
+
+browser.UserContext = text;
+
+browser.UserContextInfo = {
+  userContext: browser.UserContext
+}
+
+browser.Close = (
+  method: "browser.close",
+  params: EmptyParams,
+)
+
+browser.CreateUserContext = (
+  method: "browser.createUserContext",
+  params: EmptyParams,
+)
+
+browser.CreateUserContextResult = browser.UserContextInfo
+
+browser.GetClientWindows = (
+  method: "browser.getClientWindows",
+  params: EmptyParams,
+)
+
+browser.GetClientWindowsResult = {
+  clientWindows: [ * browser.ClientWindowInfo]
+}
+
+browser.GetUserContexts = (
+  method: "browser.getUserContexts",
+  params: EmptyParams,
+)
+
+browser.GetUserContextsResult = {
+  userContexts: [ + browser.UserContextInfo]
+}
+
+browser.RemoveUserContext = (
+  method: "browser.removeUserContext",
+  params: browser.RemoveUserContextParameters
+)
+
+browser.RemoveUserContextParameters = {
+  userContext: browser.UserContext
+}
+
+browser.SetClientWindowState = (
+  method: "browser.setClientWindowState",
+  params: browser.SetClientWindowStateParameters
+)
+
+browser.SetClientWindowStateParameters = {
+  clientWindow: browser.ClientWindow,
+  (browser.ClientWindowNamedState // browser.ClientWindowRectState)
+}
+
+browser.ClientWindowNamedState = (
+  state: "fullscreen" / "maximized" / "minimized"
+)
+
+browser.ClientWindowRectState = (
+  state: "normal",
+  ? width: js-uint,
+  ? height: js-uint,
+  ? x: js-int,
+  ? y: js-int,
+)
+
+BrowsingContextCommand = (
+  browsingContext.Activate //
+  browsingContext.CaptureScreenshot //
+  browsingContext.Close //
+  browsingContext.Create //
+  browsingContext.GetTree //
+  browsingContext.HandleUserPrompt //
+  browsingContext.LocateNodes //
+  browsingContext.Navigate //
+  browsingContext.Print //
+  browsingContext.Reload //
+  browsingContext.SetViewport //
+  browsingContext.TraverseHistory
+)
+
+BrowsingContextResult = (
+  browsingContext.CaptureScreenshotResult /
+  browsingContext.CreateResult /
+  browsingContext.GetTreeResult /
+  browsingContext.LocateNodesResult /
+  browsingContext.NavigateResult /
+  browsingContext.PrintResult /
+  browsingContext.TraverseHistoryResult
+)
+
+BrowsingContextEvent = (
+  browsingContext.ContextCreated //
+  browsingContext.ContextDestroyed //
+  browsingContext.DomContentLoaded //
+  browsingContext.DownloadWillBegin //
+  browsingContext.FragmentNavigated //
+  browsingContext.HistoryUpdated //
+  browsingContext.Load //
+  browsingContext.NavigationAborted //
+  browsingContext.NavigationCommitted //
+  browsingContext.NavigationFailed //
+  browsingContext.NavigationStarted //
+  browsingContext.UserPromptClosed //
+  browsingContext.UserPromptOpened
+)
+
+browsingContext.BrowsingContext = text;
+
+browsingContext.InfoList = [*browsingContext.Info]
+
+browsingContext.Info = {
+  children: browsingContext.InfoList / null,
+  clientWindow: browser.ClientWindow,
+  context: browsingContext.BrowsingContext,
+  originalOpener: browsingContext.BrowsingContext / null,
+  url: text,
+  userContext: browser.UserContext,
+  ? parent: browsingContext.BrowsingContext / null,
+}
+
+browsingContext.Locator = (
+   browsingContext.AccessibilityLocator /
+   browsingContext.CssLocator /
+   browsingContext.ContextLocator /
+   browsingContext.InnerTextLocator /
+   browsingContext.XPathLocator
+)
+
+browsingContext.AccessibilityLocator = {
+   type: "accessibility",
+   value: {
+    ? name: text,
+    ? role: text,
+   }
+}
+
+browsingContext.CssLocator = {
+   type: "css",
+   value: text
+}
+
+browsingContext.ContextLocator = {
+  type: "context",
+  value: {
+    context: browsingContext.BrowsingContext,
+  }
+}
+
+browsingContext.InnerTextLocator = {
+   type: "innerText",
+   value: text,
+   ? ignoreCase: bool
+   ? matchType: "full" / "partial",
+   ? maxDepth: js-uint,
+}
+
+browsingContext.XPathLocator = {
+   type: "xpath",
+   value: text
+}
+
+browsingContext.Navigation = text;
+
+browsingContext.BaseNavigationInfo = (
+  context: browsingContext.BrowsingContext,
+  navigation: browsingContext.Navigation / null,
+  timestamp: js-uint,
+  url: text,
+)
+
+browsingContext.NavigationInfo = {
+  browsingContext.BaseNavigationInfo
+}
+
+browsingContext.ReadinessState = "none" / "interactive" / "complete"
+
+browsingContext.UserPromptType = "alert" / "beforeunload" / "confirm" / "prompt";
+
+browsingContext.Activate = (
+  method: "browsingContext.activate",
+  params: browsingContext.ActivateParameters
+)
+
+browsingContext.ActivateParameters = {
+  context: browsingContext.BrowsingContext
+}
+
+browsingContext.CaptureScreenshot = (
+  method: "browsingContext.captureScreenshot",
+  params: browsingContext.CaptureScreenshotParameters
+)
+
+browsingContext.CaptureScreenshotParameters = {
+  context: browsingContext.BrowsingContext,
+  ? origin: ("viewport" / "document") .default "viewport",
+  ? format: browsingContext.ImageFormat,
+  ? clip: browsingContext.ClipRectangle,
+}
+
+browsingContext.ImageFormat = {
+   type: text,
+   ? quality: 0.0..1.0,
+}
+
+browsingContext.ClipRectangle = (
+  browsingContext.BoxClipRectangle /
+  browsingContext.ElementClipRectangle
+)
+
+browsingContext.ElementClipRectangle = {
+  type: "element",
+  element: script.SharedReference
+}
+
+browsingContext.BoxClipRectangle = {
+   type: "box",
+   x: float,
+   y: float,
+   width: float,
+   height: float
+}
+
+browsingContext.CaptureScreenshotResult = {
+  data: text
+}
+
+browsingContext.Close = (
+  method: "browsingContext.close",
+  params: browsingContext.CloseParameters
+)
+
+browsingContext.CloseParameters = {
+  context: browsingContext.BrowsingContext,
+  ? promptUnload: bool .default false
+}
+
+browsingContext.Create = (
+  method: "browsingContext.create",
+  params: browsingContext.CreateParameters
+)
+
+browsingContext.CreateType = "tab" / "window"
+
+browsingContext.CreateParameters = {
+  type: browsingContext.CreateType,
+  ? referenceContext: browsingContext.BrowsingContext,
+  ? background: bool .default false,
+  ? userContext: browser.UserContext
+}
+
+browsingContext.CreateResult = {
+  context: browsingContext.BrowsingContext
+}
+
+browsingContext.GetTree = (
+  method: "browsingContext.getTree",
+  params: browsingContext.GetTreeParameters
+)
+
+browsingContext.GetTreeParameters = {
+  ? maxDepth: js-uint,
+  ? root: browsingContext.BrowsingContext,
+}
+
+browsingContext.GetTreeResult = {
+  contexts: browsingContext.InfoList
+}
+
+browsingContext.HandleUserPrompt = (
+  method: "browsingContext.handleUserPrompt",
+  params: browsingContext.HandleUserPromptParameters
+)
+
+browsingContext.HandleUserPromptParameters = {
+  context: browsingContext.BrowsingContext,
+  ? accept: bool,
+  ? userText: text,
+}
+
+browsingContext.LocateNodes = (
+  method: "browsingContext.locateNodes",
+  params: browsingContext.LocateNodesParameters
+)
+
+browsingContext.LocateNodesParameters = {
+   context: browsingContext.BrowsingContext,
+   locator: browsingContext.Locator,
+   ? maxNodeCount: (js-uint .ge 1),
+   ? serializationOptions: script.SerializationOptions,
+   ? startNodes: [ + script.SharedReference ]
+}
+
+browsingContext.LocateNodesResult = {
+    nodes: [ * script.NodeRemoteValue ]
+}
+
+browsingContext.Navigate = (
+  method: "browsingContext.navigate",
+  params: browsingContext.NavigateParameters
+)
+
+browsingContext.NavigateParameters = {
+  context: browsingContext.BrowsingContext,
+  url: text,
+  ? wait: browsingContext.ReadinessState,
+}
+
+browsingContext.NavigateResult = {
+  navigation: browsingContext.Navigation / null,
+  url: text,
+}
+
+browsingContext.Print = (
+  method: "browsingContext.print",
+  params: browsingContext.PrintParameters
+)
+
+browsingContext.PrintParameters = {
+  context: browsingContext.BrowsingContext,
+  ? background: bool .default false,
+  ? margin: browsingContext.PrintMarginParameters,
+  ? orientation: ("portrait" / "landscape") .default "portrait",
+  ? page: browsingContext.PrintPageParameters,
+  ? pageRanges: [*(js-uint / text)],
+  ? scale: (0.1..2.0) .default 1.0,
+  ? shrinkToFit: bool .default true,
+}
+
+browsingContext.PrintMarginParameters = {
+  ? bottom: (float .ge 0.0) .default 1.0,
+  ? left: (float .ge 0.0) .default 1.0,
+  ? right: (float .ge 0.0) .default 1.0,
+  ? top: (float .ge 0.0) .default 1.0,
+}
+
+; Minimum size is 1pt x 1pt. Conversion follows from
+; https://www.w3.org/TR/css3-values/#absolute-lengths
+browsingContext.PrintPageParameters = {
+  ? height: (float .ge 0.0352) .default 27.94,
+  ? width: (float .ge 0.0352) .default 21.59,
+}
+
+browsingContext.PrintResult = {
+  data: text
+}
+
+browsingContext.Reload = (
+  method: "browsingContext.reload",
+  params: browsingContext.ReloadParameters
+)
+
+browsingContext.ReloadParameters = {
+  context: browsingContext.BrowsingContext,
+  ? ignoreCache: bool,
+  ? wait: browsingContext.ReadinessState,
+}
+
+browsingContext.SetViewport = (
+  method: "browsingContext.setViewport",
+  params: browsingContext.SetViewportParameters
+)
+
+browsingContext.SetViewportParameters = {
+  ? context: browsingContext.BrowsingContext,
+  ? viewport: browsingContext.Viewport / null,
+  ? devicePixelRatio: (float .gt 0.0) / null,
+  ? userContexts: [+browser.UserContext],
+}
+
+browsingContext.Viewport = {
+  width: js-uint,
+  height: js-uint,
+}
+
+browsingContext.TraverseHistory = (
+  method: "browsingContext.traverseHistory",
+  params: browsingContext.TraverseHistoryParameters
+)
+
+browsingContext.TraverseHistoryParameters = {
+  context: browsingContext.BrowsingContext,
+  delta: js-int,
+}
+
+browsingContext.TraverseHistoryResult = {
+}
+
+browsingContext.ContextCreated = (
+ method: "browsingContext.contextCreated",
+ params: browsingContext.Info
+)
+
+browsingContext.ContextDestroyed = (
+ method: "browsingContext.contextDestroyed",
+ params: browsingContext.Info
+)
+
+browsingContext.NavigationStarted = (
+ method: "browsingContext.navigationStarted",
+ params: browsingContext.NavigationInfo
+)
+
+browsingContext.FragmentNavigated = (
+ method: "browsingContext.fragmentNavigated",
+ params: browsingContext.NavigationInfo
+)
+
+browsingContext.HistoryUpdated = (
+  method: "browsingContext.historyUpdated",
+  params: browsingContext.HistoryUpdatedParameters
+)
+
+browsingContext.HistoryUpdatedParameters = {
+  context: browsingContext.BrowsingContext,
+  url: text
+}
+
+browsingContext.DomContentLoaded = (
+ method: "browsingContext.domContentLoaded",
+ params: browsingContext.NavigationInfo
+)
+
+browsingContext.Load = (
+ method: "browsingContext.load",
+ params: browsingContext.NavigationInfo
+)
+
+browsingContext.DownloadWillBegin = (
+ method: "browsingContext.downloadWillBegin",
+ params: browsingContext.DownloadWillBeginParams
+)
+
+browsingContext.DownloadWillBeginParams = {
+  suggestedFilename: text,
+  browsingContext.BaseNavigationInfo
+}
+
+browsingContext.NavigationAborted = (
+ method: "browsingContext.navigationAborted",
+ params: browsingContext.NavigationInfo
+)
+
+browsingContext.NavigationCommitted = (
+ method: "browsingContext.navigationCommitted",
+ params: browsingContext.NavigationInfo
+)
+
+browsingContext.NavigationFailed = (
+ method: "browsingContext.navigationFailed",
+ params: browsingContext.NavigationInfo
+)
+
+browsingContext.UserPromptClosed = (
+  method: "browsingContext.userPromptClosed",
+  params: browsingContext.UserPromptClosedParameters
+)
+
+browsingContext.UserPromptClosedParameters = {
+  context: browsingContext.BrowsingContext,
+  accepted: bool,
+  type: browsingContext.UserPromptType,
+  ? userText: text
+}
+
+browsingContext.UserPromptOpened = (
+  method: "browsingContext.userPromptOpened",
+  params: browsingContext.UserPromptOpenedParameters
+)
+
+browsingContext.UserPromptOpenedParameters = {
+  context: browsingContext.BrowsingContext,
+  handler: session.UserPromptHandlerType,
+  message: text,
+  type: browsingContext.UserPromptType,
+  ? defaultValue: text
+}
+
+EmulationCommand = (
+  emulation.SetGeolocationOverride
+)
+
+emulation.SetGeolocationOverride = (
+  method: "emulation.setGeolocationOverride",
+  params: emulation.SetGeolocationOverrideParameters
+)
+
+emulation.SetGeolocationOverrideParameters = {
+  coordinates: emulation.GeolocationCoordinates / null,
+  ? contexts: [+browsingContext.BrowsingContext],
+  ? userContexts: [+browser.UserContext],
+}
+
+emulation.GeolocationCoordinates = {
+   latitude: float,
+   longitude: float,
+   ? accuracy: float .default 1.0,
+   ? altitude: float / null .default null,
+   ? altitudeAccuracy: float / null .default null,
+   ? heading: float / null .default null,
+   ? speed: float / null .default null,
+}
+
+
 NetworkCommand = (
   network.AddIntercept //
   network.ContinueRequest //

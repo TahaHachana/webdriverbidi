@@ -7,6 +7,12 @@ pub enum WebExtensionCommand {
     Uninstall(Uninstall),
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
+pub enum WebExtensionResult {
+    InstallResult(InstallResult),
+}
+
 pub type Extension = String;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -90,6 +96,11 @@ impl ExtensionBase64Encoded {
             value,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct InstallResult {
+    pub extension: Extension,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

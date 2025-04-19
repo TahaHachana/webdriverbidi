@@ -1,16 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-// --------------------------------------------------
-
 use super::id;
 use super::utils;
+
 use crate::define_command;
 use crate::error::CommandError;
-use crate::local::storage::*;
-use crate::remote::storage::*;
+use crate::model::storage::*;
 use crate::session::WebDriverBiDiSession;
-
-// --------------------------------------------------
 
 // https://w3c.github.io/webdriver-bidi/#command-storage-getCookies
 define_command!(

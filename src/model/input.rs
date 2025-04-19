@@ -1,6 +1,6 @@
-use crate::remote::browsing_context::BrowsingContext;
-use crate::remote::script::SharedReference;
-use crate::remote::{JsInt, JsUint};
+use crate::model::browsing_context::BrowsingContext;
+use crate::model::common::{JsInt, JsUint};
+use crate::model::script::SharedReference;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -9,6 +9,12 @@ pub enum InputCommand {
     PerformActions(PerformActions),
     ReleaseActions(ReleaseActions),
     SetFiles(SetFiles),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum InputEvent {
+    FileDialogOpened(FileDialogOpened),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -275,8 +281,8 @@ impl PointerDownAction {
 pub struct PointerMoveAction {
     #[serde(rename = "type")]
     pub pointer_move_action_type: String,
-    pub x: JsInt,
-    pub y: JsInt,
+    pub x: f64,
+    pub y: f64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub duration: Option<JsUint>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -287,8 +293,8 @@ pub struct PointerMoveAction {
 
 impl PointerMoveAction {
     pub fn new(
-        x: JsInt,
-        y: JsInt,
+        x: f64,
+        y: f64,
         duration: Option<JsUint>,
         origin: Option<Origin>,
         pointer_common_properties: PointerCommonProperties,
@@ -445,4 +451,27 @@ impl SetFilesParameters {
             files,
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FileDialogOpened {
+    pub method: String,
+    pub params: FileDialogInfo,
+}
+
+impl FileDialogOpened {
+    pub fn new(params: FileDialogInfo) -> Self {
+        Self {
+            method: "input.fileDialogOpened".to_string(),
+            params,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FileDialogInfo {
+    context: BrowsingContext,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    element: Option<SharedReference>,
+    multiple: bool,
 }

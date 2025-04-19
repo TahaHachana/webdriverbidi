@@ -1,9 +1,8 @@
-#![allow(clippy::all)]
-
-use crate::remote::browser::UserContext;
-use crate::remote::browsing_context::BrowsingContext;
-use crate::remote::{EmptyParams, Extensible};
 use serde::{Deserialize, Serialize};
+
+use crate::model::browser::UserContext;
+use crate::model::browsing_context::BrowsingContext;
+use crate::model::common::{EmptyParams, Extensible};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -15,7 +14,15 @@ pub enum SessionCommand {
     Unsubscribe(Unsubscribe),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
+pub enum SessionResult {
+    NewResult(NewResult),
+    StatusResult(StatusResult),
+    SubscribeResult(SubscribeResult),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CapabilitiesRequest {
     #[serde(rename = "alwaysMatch", skip_serializing_if = "Option::is_none")]
     pub always_match: Option<CapabilityRequest>,
@@ -23,19 +30,7 @@ pub struct CapabilitiesRequest {
     pub first_match: Option<Vec<CapabilityRequest>>,
 }
 
-impl CapabilitiesRequest {
-    pub fn new(
-        always_match: Option<CapabilityRequest>,
-        first_match: Option<Vec<CapabilityRequest>>,
-    ) -> Self {
-        Self {
-            always_match,
-            first_match,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CapabilityRequest {
     #[serde(
         rename = "acceptInsecureCerts",
@@ -55,32 +50,11 @@ pub struct CapabilityRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub unhandled_prompt_behavior: Option<UserPromptHandler>,
+    #[serde(flatten)]
     pub extensible: Extensible,
 }
 
-impl CapabilityRequest {
-    pub fn new(
-        accept_insecure_certs: Option<bool>,
-        browser_name: Option<String>,
-        browser_version: Option<String>,
-        platform_name: Option<String>,
-        proxy: Option<ProxyConfiguration>,
-        unhandled_prompt_behavior: Option<UserPromptHandler>,
-        extensible: Extensible,
-    ) -> Self {
-        Self {
-            accept_insecure_certs,
-            browser_name,
-            browser_version,
-            platform_name,
-            proxy,
-            unhandled_prompt_behavior,
-            extensible,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
 pub enum ProxyConfiguration {
     AutodetectProxyConfiguration(AutodetectProxyConfiguration),
@@ -90,39 +64,23 @@ pub enum ProxyConfiguration {
     SystemProxyConfiguration(SystemProxyConfiguration),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct AutodetectProxyConfiguration {
     #[serde(rename = "proxyType")]
     pub proxy_type: String,
+    #[serde(flatten)]
     pub extensible: Extensible,
 }
 
-impl AutodetectProxyConfiguration {
-    pub fn new(proxy_type: String, extensible: Extensible) -> Self {
-        Self {
-            proxy_type,
-            extensible,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct DirectProxyConfiguration {
     #[serde(rename = "proxyType")]
     pub proxy_type: String,
+    #[serde(flatten)]
     pub extensible: Extensible,
 }
 
-impl DirectProxyConfiguration {
-    pub fn new(proxy_type: String, extensible: Extensible) -> Self {
-        Self {
-            proxy_type,
-            extensible,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ManualProxyConfiguration {
     #[serde(rename = "proxyType")]
     pub proxy_type: String,
@@ -132,39 +90,15 @@ pub struct ManualProxyConfiguration {
     pub http_proxy: Option<String>,
     #[serde(rename = "sslProxy", skip_serializing_if = "Option::is_none")]
     pub ssl_proxy: Option<String>,
-    #[serde(
-        rename = "socksProxyConfiguration",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub socks_proxy_configuration: Option<SocksProxyConfiguration>,
+    #[serde(rename = "socksProxy", skip_serializing_if = "Option::is_none")]
+    pub socks_proxy: Option<SocksProxyConfiguration>,
     #[serde(rename = "noProxy", skip_serializing_if = "Option::is_none")]
     pub no_proxy: Option<Vec<String>>,
+    #[serde(flatten)]
     pub extensible: Extensible,
 }
 
-impl ManualProxyConfiguration {
-    pub fn new(
-        proxy_type: String,
-        ftp_proxy: Option<String>,
-        http_proxy: Option<String>,
-        ssl_proxy: Option<String>,
-        socks_proxy_configuration: Option<SocksProxyConfiguration>,
-        no_proxy: Option<Vec<String>>,
-        extensible: Extensible,
-    ) -> Self {
-        Self {
-            proxy_type,
-            ftp_proxy,
-            http_proxy,
-            ssl_proxy,
-            socks_proxy_configuration,
-            no_proxy,
-            extensible,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct SocksProxyConfiguration {
     #[serde(rename = "socksProxy")]
     pub socks_proxy: String,
@@ -172,51 +106,25 @@ pub struct SocksProxyConfiguration {
     pub socks_version: u8,
 }
 
-impl SocksProxyConfiguration {
-    pub fn new(socks_proxy: String, socks_version: u8) -> Self {
-        Self {
-            socks_proxy,
-            socks_version,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct PacProxyConfiguration {
     #[serde(rename = "proxyType")]
     pub proxy_type: String,
     #[serde(rename = "proxyAutoconfigUrl")]
     pub proxy_autoconfig_url: String,
+    #[serde(flatten)]
     pub extensible: Extensible,
 }
 
-impl PacProxyConfiguration {
-    pub fn new(proxy_type: String, proxy_autoconfig_url: String, extensible: Extensible) -> Self {
-        Self {
-            proxy_type,
-            proxy_autoconfig_url,
-            extensible,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct SystemProxyConfiguration {
     #[serde(rename = "proxyType")]
     pub proxy_type: String,
+    #[serde(flatten)]
     pub extensible: Extensible,
 }
 
-impl SystemProxyConfiguration {
-    pub fn new(proxy_type: String, extensible: Extensible) -> Self {
-        Self {
-            proxy_type,
-            extensible,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct UserPromptHandler {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub alert: Option<UserPromptHandlerType>,
@@ -227,28 +135,12 @@ pub struct UserPromptHandler {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default: Option<UserPromptHandlerType>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub file: Option<UserPromptHandlerType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt: Option<UserPromptHandlerType>,
 }
 
-impl UserPromptHandler {
-    pub fn new(
-        alert: Option<UserPromptHandlerType>,
-        before_unload: Option<UserPromptHandlerType>,
-        confirm: Option<UserPromptHandlerType>,
-        default: Option<UserPromptHandlerType>,
-        prompt: Option<UserPromptHandlerType>,
-    ) -> Self {
-        Self {
-            alert,
-            before_unload,
-            confirm,
-            default,
-            prompt,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum UserPromptHandlerType {
     Accept,
@@ -256,8 +148,7 @@ pub enum UserPromptHandlerType {
     Ignore,
 }
 
-pub type Subscription = String;
-
+type Subscription = String;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SubscriptionRequest {
     pub events: Vec<String>,
@@ -299,6 +190,12 @@ pub struct UnsubscribeByAttributesRequest {
     pub contexts: Option<Vec<BrowsingContext>>,
 }
 
+impl UnsubscribeByAttributesRequest {
+    pub fn new(events: Vec<String>, contexts: Option<Vec<BrowsingContext>>) -> Self {
+        Self { events, contexts }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Status {
     pub method: String,
@@ -312,6 +209,12 @@ impl Status {
             params,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StatusResult {
+    pub ready: bool,
+    pub message: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -338,6 +241,39 @@ impl NewParameters {
     pub fn new(capabilities: CapabilitiesRequest) -> Self {
         Self { capabilities }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct NewResult {
+    pub session_id: String,
+    pub capabilities: Capabilities,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Capabilities {
+    #[serde(rename = "acceptInsecureCerts")]
+    pub accept_insecure_certs: bool,
+    #[serde(rename = "browserName")]
+    pub browser_name: String,
+    #[serde(rename = "browserVersion")]
+    pub browser_version: String,
+    #[serde(rename = "platformName")]
+    pub platform_name: String,
+    #[serde(rename = "setWindowRect")]
+    pub set_window_rect: bool,
+    #[serde(rename = "userAgent")]
+    pub user_agent: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub proxy: Option<ProxyConfiguration>,
+    #[serde(
+        rename = "unhandledPromptBehavior",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub unhandled_prompt_behavior: Option<UserPromptHandler>,
+    #[serde(rename = "webSocketUrl", skip_serializing_if = "Option::is_none")]
+    pub web_socket_url: Option<String>,
+    #[serde(flatten)]
+    pub extensible: Extensible,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -368,6 +304,12 @@ impl Subscribe {
             params,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SubscribeResult {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subscription: Option<Subscription>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

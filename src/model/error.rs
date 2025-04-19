@@ -1,12 +1,40 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
-pub type Extensible = HashMap<String, serde_json::Value>;
+use crate::model::common::{Extensible, JsUint};
 
-// -9007199254740991..9007199254740991
-pub type JsInt = i64;
-// 0..9007199254740991
-pub type JsUint = u64;
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ErrorResponse {
+    #[serde(rename = "type")]
+    response_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    id: Option<JsUint>,
+    error: ErrorCode,
+    message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    stacktrace: Option<String>,
+    #[serde(flatten)]
+    extensible: Extensible,
+}
+
+impl ErrorResponse {
+    pub fn new(
+        response_type: String,
+        id: Option<JsUint>,
+        error: ErrorCode,
+        message: String,
+        stacktrace: Option<String>,
+        extensible: Extensible,
+    ) -> Self {
+        Self {
+            response_type,
+            id,
+            error,
+            message,
+            stacktrace,
+            extensible,
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub enum ErrorCode {

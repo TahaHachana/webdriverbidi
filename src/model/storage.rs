@@ -1,9 +1,8 @@
-#![allow(clippy::all)]
-
-use crate::remote::browsing_context;
-use crate::remote::network::{BytesValue, SameSite};
-use crate::remote::{Extensible, JsUint};
 use serde::{Deserialize, Serialize};
+
+use crate::model::browsing_context::BrowsingContext;
+use crate::model::common::{Extensible, JsUint};
+use crate::model::network::{BytesValue, Cookie, SameSite};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -13,8 +12,16 @@ pub enum StorageCommand {
     SetCookie(SetCookie),
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
+pub enum StorageResult {
+    DeleteCookiesResult(DeleteCookiesResult),
+    GetCookiesResult(GetCookiesResult),
+    SetCookieResult(SetCookieResult),
+}
+
 #[derive(Debug, Serialize, Deserialize)]
-pub struct PartionKey {
+pub struct PartitionKey {
     #[serde(rename = "userContext", skip_serializing_if = "Option::is_none")]
     pub user_context: Option<String>,
     #[serde(rename = "sourceOrigin", skip_serializing_if = "Option::is_none")]
@@ -22,7 +29,7 @@ pub struct PartionKey {
     pub extensible: Extensible,
 }
 
-impl PartionKey {
+impl PartitionKey {
     pub fn new(user_context: Option<String>, source_origin: Option<String>) -> Self {
         Self {
             user_context,
@@ -102,11 +109,11 @@ impl CookieFilter {
 pub struct BrowsingContextPartitionDescriptor {
     #[serde(rename = "type")]
     pub browsing_context_partition_descriptor_type: String,
-    pub context: browsing_context::BrowsingContext,
+    pub context: BrowsingContext,
 }
 
 impl BrowsingContextPartitionDescriptor {
-    pub fn new(context: browsing_context::BrowsingContext) -> Self {
+    pub fn new(context: BrowsingContext) -> Self {
         Self {
             browsing_context_partition_descriptor_type: "context".to_string(),
             context,
@@ -155,6 +162,13 @@ impl GetCookiesParameters {
     pub fn new(filter: Option<CookieFilter>, partition: Option<PartitionDescriptor>) -> Self {
         Self { filter, partition }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCookiesResult {
+    pub cookies: Vec<Cookie>,
+    #[serde(rename = "partitionKey")]
+    pub partition_key: PartitionKey,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -229,6 +243,12 @@ impl SetCookieParameters {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SetCookieResult {
+    #[serde(rename = "partitionKey")]
+    pub partition_key: PartitionKey,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteCookies {
     pub method: String,
@@ -256,4 +276,10 @@ impl DeleteCookiesParameters {
     pub fn new(filter: Option<CookieFilter>, partition: Option<PartitionDescriptor>) -> Self {
         Self { filter, partition }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeleteCookiesResult {
+    #[serde(rename = "partitionKey")]
+    pub partition_key: PartitionKey,
 }

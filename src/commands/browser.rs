@@ -1,19 +1,15 @@
 use serde::{Deserialize, Serialize};
 
-// --------------------------------------------------
-
 use super::id;
 use super::utils;
+
 use crate::define_command;
 use crate::error::CommandError;
-use crate::local::browser::ClientWindowInfo;
-use crate::local::browser::*;
-use crate::local::result_data::EmptyResult;
-use crate::remote::browser::*;
-use crate::remote::EmptyParams;
+use crate::model::browser::ClientWindowInfo;
+use crate::model::browser::*;
+use crate::model::common::EmptyParams;
+use crate::model::result::EmptyResult;
 use crate::session::WebDriverBiDiSession;
-
-// --------------------------------------------------
 
 // https://w3c.github.io/webdriver-bidi/#command-browser-close
 define_command!(CloseCommand, Close, EmptyParams, close, EmptyResult);

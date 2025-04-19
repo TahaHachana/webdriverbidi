@@ -1,13 +1,12 @@
-#![allow(clippy::all)]
-
-use crate::local::browsing_context::BrowsingContextResult;
-use crate::local::network::NetworkResult;
-use crate::local::script::ScriptResult;
-use crate::local::session::SessionResult;
-use crate::local::storage::StorageResult;
-use crate::local::web_extension::WebExtensionResult;
-use crate::local::Extensible;
 use serde::{Deserialize, Serialize};
+
+use crate::model::browsing_context::BrowsingContextResult;
+use crate::model::common::Extensible;
+use crate::model::network::NetworkResult;
+use crate::model::script::ScriptResult;
+use crate::model::session::SessionResult;
+use crate::model::storage::StorageResult;
+use crate::model::web_extension::WebExtensionResult;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]

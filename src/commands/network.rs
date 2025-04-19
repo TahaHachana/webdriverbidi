@@ -1,16 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-// --------------------------------------------------
-
 use super::id;
 use super::utils;
-use crate::error::CommandError;
-use crate::local::network::*;
-use crate::local::result_data::EmptyResult;
-use crate::remote::network::*;
-use crate::session::WebDriverBiDiSession;
 
-// --------------------------------------------------
+use crate::error::CommandError;
+use crate::model::network::*;
+use crate::model::result::EmptyResult;
+use crate::session::WebDriverBiDiSession;
 
 // https://w3c.github.io/webdriver-bidi/#command-network-addIntercept
 define_command!(

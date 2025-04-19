@@ -1,29 +1,29 @@
 [package]
 name = "webdriverbidi"
-version = "0.1.16"
-edition = "2021"
+version = "0.2.0"
+edition = "2024"
 authors = ["Taha Hachana <tahahachana@gmail.com>"]
 description = "WebDriver BiDi client implementation in Rust."
 license = "MIT"
 repository = "https://github.com/TahaHachana/webdriverbidi"
 
 [dependencies]
-tokio = { version = "1.43.0", features = ["full"] }
-tokio-tungstenite = "0.26.1"
-serde = { version = "1.0.217", features = ["derive"] }
-serde_json = "1.0.135"
+tokio = { version = "1.44.2", features = ["full"] }
+tokio-tungstenite = "0.26.2"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
 futures = "0.3.31"
-reqwest = { version = "0.12.12", default-features = false, features = ["json"] }
-thiserror = "2.0.10"
-log = "0.4.22"
+reqwest = { version = "0.12.15", default-features = false, features = ["json"] }
+thiserror = "2.0.12"
+log = "0.4.27"
 
 [dev-dependencies]
 simplelog = "0.12.2"
-time = "0.3.37"
-env_logger = "0.11.6"
+time = "0.3.41"
+env_logger = "0.11.8"
 base64 = "0.22.1"
-ctor = "0.2.9"
-anyhow = "1.0.95"
+ctor = "0.4.1"
+anyhow = "1.0.98"
 url = "2.5.4"
 axum = "0.8.3"
 tower = { version = "0.5.2", features = ["util"] }

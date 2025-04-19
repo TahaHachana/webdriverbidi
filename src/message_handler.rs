@@ -3,32 +3,24 @@ use std::pin::Pin;
 use std::str::FromStr;
 use std::sync::Arc;
 
-// --------------------------------------------------
-
 use futures::stream::Stream;
 use futures::task::{Context, Poll};
 use log::error;
 use serde_json::Value;
 use tokio::net::TcpStream;
-use tokio::sync::{oneshot, Mutex};
+use tokio::sync::{Mutex, oneshot};
 use tokio_tungstenite::tungstenite::protocol::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
-// --------------------------------------------------
-
 use crate::events::EventType;
 use crate::session::EventHandler;
-
-// --------------------------------------------------
 
 const ID_FIELD: &str = "id";
 const TYPE_FIELD: &str = "type";
 const EVENT_TYPE_VALUE: &str = "event";
 const METHOD_FIELD: &str = "method";
 
-// --------------------------------------------------
-
-/// Starts an loop for handling incoming WebSocket messages.
+/// Start a loop for handling incoming WebSocket messages.
 pub async fn handle_messages(
     websocket_stream: Arc<Mutex<WebSocketStream<MaybeTlsStream<TcpStream>>>>,
     pending_commands: Arc<Mutex<HashMap<u64, oneshot::Sender<Value>>>>,

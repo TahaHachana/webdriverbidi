@@ -1,33 +1,25 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-// --------------------------------------------------
-
 use futures::SinkExt;
 use log::{debug, error};
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 use tokio::net::TcpStream;
-use tokio::sync::{oneshot, Mutex};
-use tokio::time::{timeout, Duration};
+use tokio::sync::{Mutex, oneshot};
+use tokio::time::{Duration, timeout};
 use tokio_tungstenite::tungstenite::protocol::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
-// --------------------------------------------------
-
 use super::error::CommandError;
-
-// --------------------------------------------------
 
 const COMMAND_ID_KEY: &str = "id";
 const RESULT_KEY: &str = "result";
 // Wait 60 seconds max for a command response
 const RECEIVER_TIMEOUT: u64 = 60;
 
-// --------------------------------------------------
-
-/// Sends a command over a WebSocket connection and awaits a response.
+/// Send a command over a WebSocket connection and await a response.
 ///
 /// This function serializes the given command, sends it over the provided WebSocket stream,
 /// and waits for a response. Timesout if no response is received within 60 seconds.

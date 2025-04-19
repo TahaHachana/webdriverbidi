@@ -1,11 +1,9 @@
-#![allow(clippy::all)]
-
-use crate::remote::browser;
-use crate::remote::script::{SerializationOptions, SharedReference};
-use crate::remote::{JsInt, JsUint};
 use serde::{Deserialize, Serialize};
 
-pub type BrowsingContext = String;
+use crate::model::browser::{ClientWindow, UserContext};
+use crate::model::common::{JsInt, JsUint};
+use crate::model::script::{NodeRemoteValue, SerializationOptions, SharedReference};
+use crate::model::session::UserPromptHandlerType;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -22,6 +20,55 @@ pub enum BrowsingContextCommand {
     Reload(Reload),
     SetViewport(SetViewport),
     TraverseHistory(TraverseHistory),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
+pub enum BrowsingContextResult {
+    CaptureScreenshotResult(CaptureScreenshotResult),
+    CreateResult(CreateResult),
+    GetTreeResult(GetTreeResult),
+    LocateNodesResult(LocateNodesResult),
+    NavigateResult(NavigateResult),
+    PrintResult(PrintResult),
+    TraverseHistoryResult(TraverseHistoryResult),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
+pub enum BrowsingContextEvent {
+    ContextCreated(ContextCreated),
+    ContextDestroyed(ContextDestroyed),
+    DomContentLoaded(DomContentLoaded),
+    DownloadWillBegin(DownloadWillBegin),
+    FragmentNavigated(FragmentNavigated),
+    HistoryUpdated(HistoryUpdated),
+    Load(Load),
+    NavigationAborted(NavigationAborted),
+    NavigationCommitted(NavigationCommitted),
+    NavigationFailed(NavigationFailed),
+    NavigationStarted(NavigationStarted),
+    UserPromptClosed(UserPromptClosed),
+    UserPromptOpened(UserPromptOpened),
+}
+
+pub type BrowsingContext = String;
+
+pub type InfoList = Vec<Info>;
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Info {
+    pub children: Option<InfoList>,
+    #[serde(rename = "clientWindow", skip_serializing_if = "Option::is_none")]
+    pub client_window: Option<ClientWindow>,
+    pub context: BrowsingContext,
+    #[serde(rename = "originalOpener")]
+    pub original_opener: Option<BrowsingContext>,
+    pub url: String,
+    #[serde(rename = "userContext")]
+    pub user_context: UserContext,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent: Option<BrowsingContext>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -158,6 +205,22 @@ impl XPathLocator {
             value,
         }
     }
+}
+
+pub type Navigation = String;
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BaseNavigationInfo {
+    pub context: BrowsingContext,
+    pub navigation: Option<Navigation>,
+    pub timestamp: JsUint,
+    pub url: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct NavigationInfo {
+    #[serde(flatten)]
+    pub base: BaseNavigationInfo,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -314,6 +377,11 @@ impl BoxClipRectangle {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CaptureScreenshotResult {
+    pub data: String,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Close {
     pub method: String,
@@ -376,7 +444,7 @@ pub struct CreateParameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub background: Option<bool>,
     #[serde(rename = "userContext", skip_serializing_if = "Option::is_none")]
-    pub user_context: Option<browser::UserContext>,
+    pub user_context: Option<UserContext>,
 }
 
 impl CreateParameters {
@@ -384,7 +452,7 @@ impl CreateParameters {
         create_type: CreateType,
         reference_context: Option<BrowsingContext>,
         background: Option<bool>,
-        user_context: Option<browser::UserContext>,
+        user_context: Option<UserContext>,
     ) -> Self {
         Self {
             create_type,
@@ -393,6 +461,11 @@ impl CreateParameters {
             user_context,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CreateResult {
+    pub context: BrowsingContext,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -422,6 +495,11 @@ impl GetTreeParameters {
     pub fn new(max_depth: Option<JsUint>, root: Option<BrowsingContext>) -> Self {
         Self { max_depth, root }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetTreeResult {
+    pub contexts: InfoList,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -506,6 +584,11 @@ impl LocateNodesParameters {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LocateNodesResult {
+    pub nodes: Vec<NodeRemoteValue>,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Navigate {
     pub method: String, // "browsingContext.navigate"
@@ -533,6 +616,12 @@ impl NavigateParameters {
     pub fn new(context: BrowsingContext, url: String, wait: Option<ReadinessState>) -> Self {
         Self { context, url, wait }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct NavigateResult {
+    pub navigation: Option<Navigation>,
+    pub url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -649,6 +738,11 @@ impl PrintPageParameters {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PrintResult {
+    pub data: String,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Reload {
     pub method: String,
@@ -704,23 +798,28 @@ impl SetViewport {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SetViewportParameters {
-    pub context: BrowsingContext,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<BrowsingContext>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewport: Option<Viewport>,
     #[serde(rename = "devicePixelRatio", skip_serializing_if = "Option::is_none")]
     pub device_pixel_ratio: Option<f32>, // 0.0..
+    #[serde(rename = "userContexts", skip_serializing_if = "Option::is_none")]
+    pub user_contexts: Option<Vec<UserContext>>,
 }
 
 impl SetViewportParameters {
     pub fn new(
-        context: BrowsingContext,
+        context: Option<BrowsingContext>,
         viewport: Option<Viewport>,
         device_pixel_ratio: Option<f32>,
+        user_contexts: Option<Vec<UserContext>>,
     ) -> Self {
         Self {
             context,
             viewport,
             device_pixel_ratio,
+            user_contexts,
         }
     }
 }
@@ -762,4 +861,120 @@ impl TraverseHistoryParameters {
     pub fn new(context: String, delta: i64) -> Self {
         Self { context, delta }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct TraverseHistoryResult {}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ContextCreated {
+    pub method: String,
+    pub params: Info,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ContextDestroyed {
+    pub method: String,
+    pub params: Info,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct NavigationStarted {
+    pub method: String,
+    pub params: NavigationInfo,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FragmentNavigated {
+    pub method: String,
+    pub params: NavigationInfo,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct HistoryUpdated {
+    pub method: String,
+    pub params: HistoryUpdatedParameters,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct HistoryUpdatedParameters {
+    pub context: BrowsingContext,
+    pub url: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DomContentLoaded {
+    pub method: String,
+    pub params: NavigationInfo,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Load {
+    pub method: String,
+    pub params: NavigationInfo,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DownloadWillBegin {
+    pub method: String,
+    pub params: DownloadWillBeginParams,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DownloadWillBeginParams {
+    #[serde(rename = "suggestedFilename")]
+    pub suggested_filename: String,
+    #[serde(flatten)]
+    pub base: BaseNavigationInfo,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct NavigationAborted {
+    pub method: String,
+    pub params: NavigationInfo,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct NavigationCommitted {
+    pub method: String,
+    pub params: NavigationInfo,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct NavigationFailed {
+    pub method: String,
+    pub params: NavigationInfo,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UserPromptClosed {
+    pub method: String,
+    pub params: UserPromptClosedParameters,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UserPromptClosedParameters {
+    pub context: BrowsingContext,
+    pub accepted: bool,
+    #[serde(rename = "type")]
+    pub prompt_type: UserPromptType,
+    #[serde(rename = "userText", skip_serializing_if = "Option::is_none")]
+    pub user_text: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UserPromptOpened {
+    pub method: String,
+    pub params: UserPromptOpenedParameters,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UserPromptOpenedParameters {
+    pub context: BrowsingContext,
+    pub handler: UserPromptHandlerType,
+    pub message: String,
+    #[serde(rename = "type")]
+    pub prompt_type: UserPromptType,
+    #[serde(rename = "defaultValue", skip_serializing_if = "Option::is_none")]
+    pub default_value: Option<String>,
 }

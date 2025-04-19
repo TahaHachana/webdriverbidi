@@ -2,12 +2,8 @@
 
 use std::collections::HashMap;
 
-// --------------------------------------------------
-
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
-
-// --------------------------------------------------
+use serde_json::{Value, json};
 
 // Type alias for extensible capabilities, which are represented as a HashMap
 // with String keys and serde_json::Value values.
@@ -74,8 +70,6 @@ impl CapabilityRequest {
     }
 }
 
-// --------------------------------------------------
-
 /// Capabilities struct to represent the standard capabilities JSON object.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CapabilitiesRequest {
@@ -86,7 +80,7 @@ pub struct CapabilitiesRequest {
 }
 
 impl CapabilitiesRequest {
-    /// Constructs a new Capabilities instance ensuring the webSocketUrl capability is set to true.
+    /// Construct a new Capabilities instance ensuring the webSocketUrl capability is set to true.
     ///
     /// # Arguments
     ///
@@ -103,7 +97,7 @@ impl CapabilitiesRequest {
         }
     }
 
-    /// Adds a firstMatch capability to the Capabilities instance.
+    /// Add a firstMatch capability to the Capabilities instance.
     ///
     /// # Arguments
     ///
@@ -120,7 +114,7 @@ impl CapabilitiesRequest {
         }
     }
 
-    /// Adds a non standard alwaysMatch capability if the key is not `webSocketUrl`.
+    /// Add a non standard alwaysMatch capability if the key is not `webSocketUrl`.
     ///
     /// # Arguments
     ///
@@ -138,7 +132,7 @@ impl CapabilitiesRequest {
         }
     }
 
-    /// Builds the Capabilities instance into a serde_json::Value ready for serialization.
+    /// Build the Capabilities instance into a serde_json::Value ready for serialization.
     pub fn build(&self) -> Value {
         let json = json!({
             "capabilities": self
@@ -146,7 +140,7 @@ impl CapabilitiesRequest {
         json
     }
 
-    /// Constructs a new CapabilitiesRequest instance with default values.
+    /// Construct a new CapabilitiesRequest instance with default values.
     pub fn default() -> Self {
         let always_match = CapabilityRequest::new();
         CapabilitiesRequest::new(always_match)

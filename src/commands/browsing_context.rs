@@ -1,17 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-// --------------------------------------------------
-
 use super::id;
 use super::utils;
+
 use crate::define_command;
 use crate::error::CommandError;
-use crate::models::local::browsing_context::*;
-use crate::models::local::result_data::EmptyResult;
-use crate::models::remote::browsing_context::*;
+use crate::model::browsing_context::*;
+use crate::model::result::EmptyResult;
 use crate::session::WebDriverBiDiSession;
-
-// --------------------------------------------------
 
 // https://w3c.github.io/webdriver-bidi/#command-browsingContext-activate
 define_command!(

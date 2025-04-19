@@ -3,46 +3,35 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
-// --------------------------------------------------
-
 use log::debug;
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 use tokio::net::TcpStream;
-use tokio::sync::{oneshot, Mutex};
+use tokio::sync::{Mutex, oneshot};
 use tokio::task;
-use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
-
-// --------------------------------------------------
+use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
 
 use crate::command_sender;
 use crate::commands;
 use crate::error::{CommandError, SessionError};
 use crate::events::EventType;
-use crate::local::browser::ClientWindowInfo;
-use crate::local::browser::*;
-use crate::local::browsing_context::*;
-use crate::local::network::*;
-use crate::local::script::EvaluateResult;
-use crate::local::script::*;
-use crate::local::session::*;
-use crate::local::storage::*;
-use crate::local::web_extension::*;
 use crate::message_handler;
-use crate::models::local::result_data::EmptyResult;
-use crate::remote::browser::*;
-use crate::remote::input::*;
-use crate::remote::network::*;
-use crate::remote::script::*;
-use crate::remote::session::*;
-use crate::remote::storage::*;
-use crate::remote::web_extension::*;
-use crate::remote::{browsing_context::*, EmptyParams};
+use crate::model::browser::ClientWindowInfo;
+use crate::model::browser::*;
+use crate::model::browsing_context::*;
+use crate::model::common::EmptyParams;
+use crate::model::emulation::*;
+use crate::model::input::*;
+use crate::model::network::*;
+use crate::model::result::EmptyResult;
+use crate::model::script::EvaluateResult;
+use crate::model::script::*;
+use crate::model::session::*;
+use crate::model::storage::*;
+use crate::model::web_extension::*;
 use crate::webdriver::capabilities::CapabilitiesRequest;
 use crate::webdriver::session;
-
-// --------------------------------------------------
 
 /// Type alias for the event handler functions.
 pub type EventHandler =
@@ -103,8 +92,8 @@ impl WebDriverBiDiSession {
         }
     }
 
-    /// Starts a WebDriver session, establishes a WebSocket connection and
-    /// spawns a background task to handle incoming messages.
+    /// Start a WebDriver session, establishe a WebSocket connection and
+    /// spawn a background task to handle incoming messages.
     ///
     /// **A WebDriver BiDi server must be running before calling this method.**
     pub async fn start(&mut self) -> Result<(), SessionError> {
@@ -132,13 +121,13 @@ impl WebDriverBiDiSession {
         Ok(())
     }
 
-    /// Closes the WebDriver session.
+    /// Close the WebDriver session.
     pub async fn close(&mut self) -> Result<(), SessionError> {
         session::close_session(&self.base_url, &self.session_id).await?;
         Ok(())
     }
 
-    /// Sends a WebDriver BiDi command.
+    /// Send a WebDriver BiDi command.
     ///
     /// # Arguments
     ///
@@ -165,7 +154,7 @@ impl WebDriverBiDiSession {
         }
     }
 
-    /// Spawns a background task to manage incoming WebSocket messages.
+    /// Spawn a background task to manage incoming WebSocket messages.
     ///
     /// This method creates a new asynchronous task that continuously listens for
     /// incoming messages on the WebSocket connection and handles them appropriately.
@@ -182,7 +171,7 @@ impl WebDriverBiDiSession {
         ));
     }
 
-    /// Registers an event handler for a specific event type.
+    /// Register an event handler for a specific event type.
     ///
     /// # Arguments
     ///
@@ -198,7 +187,7 @@ impl WebDriverBiDiSession {
         handlers.insert(event_type, Box::new(move |event| Box::pin(handler(event))));
     }
 
-    /// Unregisters an event handler for a specific event type.
+    /// Unregister an event handler for a specific event type.
     ///
     /// # Arguments
     ///
@@ -213,7 +202,7 @@ impl WebDriverBiDiSession {
 impl WebDriverBiDiSession {
     // https://w3c.github.io/webdriver-bidi/#command-browsingContext-activate
 
-    /// Activates and focuses a browsing context.
+    /// Activate and focus a browsing context.
     ///
     /// # Arguments
     ///
@@ -231,7 +220,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browsingContext-captureScreenshot
 
-    /// Captures an image of the given navigable, and returns it as a Base64-encoded string.
+    /// Capture an image of the given navigable and return it as a Base64-encoded string.
     ///
     /// # Arguments
     ///
@@ -249,7 +238,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browsingContext-close
 
-    /// Closes the browsing context.
+    /// Close the browsing context.
     ///
     /// # Arguments
     ///
@@ -267,7 +256,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browsingContext-create
 
-    /// Creates a new browsing context.
+    /// Create a new browsing context.
     ///
     /// # Arguments
     ///
@@ -285,7 +274,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browsingContext-getTree
 
-    /// Retrieves the browsing context tree.
+    /// Retrieve the browsing context tree.
     ///
     /// # Arguments
     ///
@@ -303,7 +292,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browsingContext-handleUserPrompt
 
-    /// Allows closing an open prompt.
+    /// Allow closing an open prompt.
     ///
     /// # Arguments
     ///
@@ -321,7 +310,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browsingContext-locateNodes
 
-    /// Returns a list of all nodes matching the specified locator.
+    /// Return a list of all nodes matching the specified locator.
     ///
     /// # Arguments
     ///
@@ -339,7 +328,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browsingContext-navigate
 
-    /// Navigates to a URL in the browsing context.
+    /// Navigate to a URL in the browsing context.
     ///
     /// # Arguments
     ///
@@ -357,8 +346,8 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browsingContext-print
 
-    /// Creates a paginated representation of a document, and returns it
-    /// as a PDF document represented as a Base64-encoded string.
+    /// Create a paginated representation of a document and return it
+    /// as a Base64-encoded string PDF.
     ///
     /// # Arguments
     ///
@@ -376,7 +365,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browsingContext-reload
 
-    /// Reloads the current page in the browsing context.
+    /// Reload the current page in the browsing context.
     ///
     /// # Arguments
     ///
@@ -394,7 +383,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browsingContext-setViewport
 
-    /// Modifies specific viewport characteristics (e.g. viewport width and viewport
+    /// Modify specific viewport characteristics (e.g. viewport width and viewport
     /// height) on the given top-level traversable.
     ///
     /// # Arguments
@@ -413,7 +402,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browsingContext-traverseHistory
 
-    /// Navigates through the browsing history of a specified context.
+    /// Navigate through the browsing history of a specified context.
     ///
     /// This method allows you to move forward or backward in the browsing history
     /// of a given navigable context by a specified number of steps (delta).
@@ -437,13 +426,11 @@ impl WebDriverBiDiSession {
     }
 }
 
-// --------------------------------------------------
-
 // Session commands
 impl WebDriverBiDiSession {
     // https://w3c.github.io/webdriver-bidi/#command-session-status
 
-    /// Returns information about whether a remote end is in a state
+    /// Return information about whether a remote end is in a state
     /// in which it can create new sessions, but may additionally include
     /// arbitrary meta information that is specific to the implementation.
     ///
@@ -459,7 +446,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-session-new
 
-    /// Creates a new session.
+    /// Create a new session.
     ///
     /// # Arguments
     ///
@@ -474,7 +461,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-session-end
 
-    /// Ends the current session.
+    /// End the current session.
     ///
     /// # Arguments
     ///
@@ -489,7 +476,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-session-subscribe
 
-    /// Enables certain events either globally or for a set of navigables.
+    /// Enable certain events either globally or for a set of navigables.
     ///
     /// # Arguments
     ///
@@ -507,7 +494,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-session-unsubscribe
 
-    /// Disables certain events either globally or for a set of navigables.
+    /// Disable certain events either globally or for a set of navigables.
     ///
     /// # Arguments
     ///
@@ -524,13 +511,12 @@ impl WebDriverBiDiSession {
     }
 }
 
-// --------------------------------------------------
-
 // Browser commands
 impl WebDriverBiDiSession {
     // https://w3c.github.io/webdriver-bidi/#command-browser-close
 
-    /// Terminates all WebDriver sessions and cleans up automation state in the remote browser instance.
+    /// Terminate all WebDriver sessions and clean up automation state
+    /// in the remote browser instance.
     ///
     /// # Arguments
     ///
@@ -548,7 +534,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browser-createUserContext
 
-    /// Creates a new user context.
+    /// Create a new user context.
     ///
     /// # Arguments
     ///
@@ -566,7 +552,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browser-getClientWindows
 
-    /// Retrieves the list of client windows.
+    /// Retrieve the list of client windows.
     ///
     /// # Arguments
     ///
@@ -584,7 +570,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browser-getUserContexts
 
-    /// Retrieves the list of user contexts.
+    /// Retrieve the list of user contexts.
     ///
     /// # Arguments
     ///
@@ -602,7 +588,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browser-removeUserContext
 
-    /// Closes a user context and all navigables in it.
+    /// Close a user context and all navigables in it.
     ///
     /// # Arguments
     ///
@@ -620,7 +606,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-browser-setClientWindowState
 
-    /// Sets the dimensions of a client window.
+    /// Set the dimensions of a client window.
     ///
     /// # Arguments
     ///
@@ -637,13 +623,32 @@ impl WebDriverBiDiSession {
     }
 }
 
-// --------------------------------------------------
+// Emulation commands
+impl WebDriverBiDiSession {
+    // https://w3c.github.io/webdriver-bidi/#command-emulation-setGeolocationOverride
+
+    /// Modify geolocation characteristics on the given top-level traversables or user contexts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetGeolocationOverrideParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn set_geolocation_override(
+        &mut self,
+        params: SetGeolocationOverrideParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::emulation::set_geolocation_override(self, params).await
+    }
+}
 
 // Network commands
 impl WebDriverBiDiSession {
     // https://w3c.github.io/webdriver-bidi/#command-network-addIntercept
 
-    /// Adds a network intercept.
+    /// Add a network intercept.
     ///
     /// # Arguments
     ///
@@ -661,7 +666,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-network-continueRequest
 
-    /// Continues a request that’s blocked by a network intercept.
+    /// Continue a request that’s blocked by a network intercept.
     ///
     /// # Arguments
     ///
@@ -679,7 +684,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-network-continueResponse
 
-    /// Continues a response that’s blocked by a network intercept.
+    /// Continue a response that’s blocked by a network intercept.
     ///
     /// # Arguments
     ///
@@ -697,7 +702,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-network-continueWithAuth
 
-    /// Continues a request that’s blocked by a network intercept at the authRequired phase.
+    /// Continue a request that’s blocked by a network intercept at the authRequired phase.
     ///
     /// # Arguments
     ///
@@ -715,7 +720,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-network-failRequest
 
-    /// Fails a fetch that’s blocked by a network intercept.
+    /// Fail a fetch that’s blocked by a network intercept.
     ///
     /// # Arguments
     ///
@@ -733,7 +738,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-network-provideResponse
 
-    /// Continues a request that’s blocked by a network intercept, by providing a complete response.
+    /// Continue a request that’s blocked by a network intercept, by providing a complete response.
     ///
     /// # Arguments
     ///
@@ -751,7 +756,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-network-removeIntercept
 
-    /// Removes a network intercept.
+    /// Remove a network intercept.
     ///
     /// # Arguments
     ///
@@ -769,7 +774,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-network-setCacheBehavior
 
-    /// Configures the network cache behavior for certain requests.
+    /// Configure the network cache behavior for certain requests.
     ///
     /// # Arguments
     ///
@@ -786,13 +791,11 @@ impl WebDriverBiDiSession {
     }
 }
 
-// --------------------------------------------------
-
 // Script commands
 impl WebDriverBiDiSession {
     // https://w3c.github.io/webdriver-bidi/#command-script-addPreloadScript
 
-    /// Adds a script to be preloaded into the browsing context.
+    /// Add a script to be preloaded into the browsing context.
     ///
     /// # Arguments
     ///
@@ -810,7 +813,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-script-disown
 
-    /// Disowns the given handles.
+    /// Disown the given handles.
     ///
     /// # Arguments
     ///
@@ -828,7 +831,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-script-callFunction
 
-    /// Calls a provided function with given arguments in a given realm.
+    /// Call a provided function with given arguments in a given realm.
     ///
     /// # Arguments
     ///
@@ -846,7 +849,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-script-evaluate
 
-    /// Evaluates the given script in the given realm.
+    /// Evaluate the given script in the given realm.
     ///
     /// # Arguments
     ///
@@ -864,7 +867,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-script-getRealms
 
-    /// Returns a list of all realms, optionally filtered to realms of a
+    /// Return a list of all realms, optionally filtered to realms of a
     /// specific type, or to the realm associated with a navigable's active document.
     ///
     /// # Arguments
@@ -883,7 +886,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-script-removePreloadScript
 
-    /// Removes a preload script.
+    /// Remove a preload script.
     ///
     /// # Arguments
     ///
@@ -900,13 +903,11 @@ impl WebDriverBiDiSession {
     }
 }
 
-// --------------------------------------------------
-
 // Storage commands
 impl WebDriverBiDiSession {
     // https://w3c.github.io/webdriver-bidi/#command-storage-getCookies
 
-    /// Retrieves zero or more cookies which match a set of provided parameters.
+    /// Retrieve zero or more cookies which match a set of provided parameters.
     ///
     /// # Arguments
     ///
@@ -924,7 +925,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-storage-setCookie
 
-    /// Creates a new cookie in a cookie store.
+    /// Create a new cookie in a cookie store.
     ///
     /// # Arguments
     ///
@@ -942,7 +943,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-storage-deleteCookies
 
-    /// Removes zero or more cookies which match a set of provided parameters.
+    /// Remove zero or more cookies which match a set of provided parameters.
     ///
     /// # Arguments
     ///
@@ -959,13 +960,11 @@ impl WebDriverBiDiSession {
     }
 }
 
-// --------------------------------------------------
-
 // Input commands
 impl WebDriverBiDiSession {
     // https://w3c.github.io/webdriver-bidi/#command-input-performActions
 
-    /// Performs a specified sequence of user input actions.
+    /// Perform a specified sequence of user input actions.
     ///
     /// # Arguments
     ///
@@ -983,7 +982,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-input-releaseActions
 
-    /// Resets the input state associated with the current session.
+    /// Reset the input state associated with the current session.
     ///
     /// # Arguments
     ///
@@ -1001,7 +1000,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-input-setFiles
 
-    /// Sets the files property of a given input element with type file
+    /// Set the files property of a given input element with type file
     /// to a set of file paths.
     ///
     /// # Arguments
@@ -1019,13 +1018,11 @@ impl WebDriverBiDiSession {
     }
 }
 
-// --------------------------------------------------
-
 // Web extension commands
 impl WebDriverBiDiSession {
     // https://w3c.github.io/webdriver-bidi/#command-webExtension-install
 
-    /// Installs a web extension.
+    /// Install a web extension.
     ///
     /// # Arguments
     ///
@@ -1043,7 +1040,7 @@ impl WebDriverBiDiSession {
 
     // https://w3c.github.io/webdriver-bidi/#command-webExtension-uninstall
 
-    /// Uninstalls a web extension.
+    /// Uninstall a web extension.
     ///
     /// # Arguments
     ///

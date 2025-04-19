@@ -2,8 +2,6 @@ use std::error::Error;
 use std::fmt;
 use std::str::FromStr;
 
-// --------------------------------------------------
-
 /// Represents the standard WebDriver BiDi events.
 #[derive(Hash, Eq, PartialEq, Debug)]
 pub enum EventType {

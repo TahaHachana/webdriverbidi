@@ -4,18 +4,18 @@ use anyhow::Result;
 use log::debug;
 use tokio::sync::Mutex;
 use webdriverbidi::events::EventType;
-use webdriverbidi::remote::browser::RemoveUserContextParameters;
-use webdriverbidi::remote::browsing_context::{
+use webdriverbidi::model::browser::RemoveUserContextParameters;
+use webdriverbidi::model::browsing_context::{
     ActivateParameters, CloseParameters, GetTreeParameters,
 };
-use webdriverbidi::remote::session::SubscriptionRequest;
+use webdriverbidi::model::session::SubscriptionRequest;
 
 mod utils;
 
 mod install_extension {
     use webdriverbidi::{
         error::CommandError,
-        remote::web_extension::{ExtensionArchivePath, ExtensionData, InstallParameters},
+        model::web_extension::{ExtensionArchivePath, ExtensionData, InstallParameters},
     };
 
     use super::*;

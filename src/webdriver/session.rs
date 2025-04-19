@@ -2,12 +2,8 @@ use log::{debug, error};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-// --------------------------------------------------
-
 use crate::error::SessionError;
 use crate::webdriver::capabilities::CapabilitiesRequest;
-
-// --------------------------------------------------
 
 /// Represents the information returned when starting a WebDriver session.
 #[derive(Debug, Serialize, Deserialize)]
@@ -17,7 +13,7 @@ pub struct SessionResponse {
     pub websocket_url: String,
 }
 
-/// Starts a WebDriver session through HTTP.
+/// Start a WebDriver session through HTTP.
 pub async fn start_session(
     base_url: &str,
     capabilities: &CapabilitiesRequest,
@@ -72,7 +68,7 @@ pub async fn start_session(
     Ok(session_response)
 }
 
-/// Closes a WebDriver session through HTTP.
+/// Close a WebDriver session through HTTP.
 pub async fn close_session(base_url: &str, session_id: &str) -> Result<(), SessionError> {
     let url = format!("{}/session/{}", base_url, session_id);
     let client = create_http_client();
@@ -86,7 +82,7 @@ pub async fn close_session(base_url: &str, session_id: &str) -> Result<(), Sessi
     Ok(())
 }
 
-/// Creates a new reqwest HTTP client.
+/// Create a new reqwest HTTP client.
 fn create_http_client() -> Client {
     Client::new()
 }

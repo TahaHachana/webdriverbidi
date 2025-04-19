@@ -1,5 +1,6 @@
-use crate::remote::{EmptyParams, JsInt, JsUint};
 use serde::{Deserialize, Serialize};
+
+use crate::model::common::{EmptyParams, JsInt, JsUint};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -12,7 +13,16 @@ pub enum BrowserCommand {
     SetClientWindowState(SetClientWindowState),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
+pub enum BrowserResult {
+    CreateUserContextResult(CreateUserContextResult),
+    GetUserContextsResult(GetUserContextsResult),
+}
+
+pub type ClientWindow = String;
+
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ClientWindowInfo {
     pub active: bool,
     #[serde(rename = "clientWindow")]
@@ -46,7 +56,7 @@ impl ClientWindowInfo {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum ClientWindowState {
     Fullscreen,
@@ -55,19 +65,12 @@ pub enum ClientWindowState {
     Normal,
 }
 
-pub type ClientWindow = String;
 pub type UserContext = String;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct UserContextInfo {
     #[serde(rename = "userContext")]
     pub user_context: UserContext,
-}
-
-impl UserContextInfo {
-    pub fn new(user_context: UserContext) -> Self {
-        Self { user_context }
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -100,6 +103,8 @@ impl CreateUserContext {
     }
 }
 
+pub type CreateUserContextResult = UserContextInfo;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GetClientWindows {
     pub method: String,
@@ -115,6 +120,12 @@ impl GetClientWindows {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetClientWindowsResult {
+    #[serde(rename = "clientWindows")]
+    pub client_windows: Vec<ClientWindowInfo>,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GetUserContexts {
     pub method: String,
@@ -128,6 +139,12 @@ impl GetUserContexts {
             params,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetUserContextsResult {
+    #[serde(rename = "userContexts")]
+    pub user_contexts: Vec<UserContextInfo>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

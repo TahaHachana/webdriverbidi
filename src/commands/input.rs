@@ -1,16 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-// --------------------------------------------------
-
 use super::id;
 use super::utils;
+
 use crate::define_command;
 use crate::error::CommandError;
-use crate::local::result_data::EmptyResult;
-use crate::remote::input::*;
+use crate::model::input::*;
+use crate::model::result::EmptyResult;
 use crate::session::WebDriverBiDiSession;
-
-// --------------------------------------------------
 
 // https://w3c.github.io/webdriver-bidi/#command-input-performActions
 define_command!(

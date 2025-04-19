@@ -10,20 +10,16 @@ use log::debug;
 // use std::io::Write;
 // use tokio::time;
 
-use axum::routing::get_service;
 use axum::Router;
+use axum::routing::get_service;
 use std::net::SocketAddr;
 use tokio::task::JoinHandle;
 use tower_http::services::ServeDir;
 // --------------------------------------------------
 
-use webdriverbidi::local::browser::ClientWindowInfo;
-use webdriverbidi::local::script::{
-    EvaluateResult,
-    RemoteValue, // NumberOrSpecialNumber, NumberValue
-};
-use webdriverbidi::remote::browser::RemoveUserContextParameters;
-use webdriverbidi::remote::browsing_context::{
+use webdriverbidi::model::browser::ClientWindowInfo;
+use webdriverbidi::model::browser::RemoveUserContextParameters;
+use webdriverbidi::model::browsing_context::{
     CreateParameters,
     CreateType,
     // GetTreeParameters,
@@ -32,10 +28,14 @@ use webdriverbidi::remote::browsing_context::{
     ReadinessState,
     // TraverseHistoryParameters,
 };
-use webdriverbidi::remote::script::{
+use webdriverbidi::model::common::EmptyParams;
+use webdriverbidi::model::script::{
     CallFunctionParameters, ContextTarget, LocalValue, PrimitiveProtocolValue, StringValue, Target,
 };
-use webdriverbidi::remote::EmptyParams;
+use webdriverbidi::model::script::{
+    EvaluateResult,
+    RemoteValue, // NumberOrSpecialNumber, NumberValue
+};
 use webdriverbidi::session::WebDriverBiDiSession;
 use webdriverbidi::webdriver::capabilities::CapabilitiesRequest;
 
@@ -204,7 +204,7 @@ pub mod local_storage {
                 let remote_value = eval_rslt_success.result;
                 match remote_value {
                     RemoteValue::PrimitiveProtocolValue(
-                        webdriverbidi::local::script::PrimitiveProtocolValue::StringValue(
+                        webdriverbidi::model::script::PrimitiveProtocolValue::StringValue(
                             string_value,
                         ),
                     ) => Ok(Some(string_value.value)),

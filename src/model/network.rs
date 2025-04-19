@@ -1,8 +1,8 @@
-#![allow(clippy::all)]
-
-use crate::remote::browsing_context::BrowsingContext;
-use crate::remote::{Extensible, JsInt, JsUint};
 use serde::{Deserialize, Serialize};
+
+use crate::model::browsing_context::{BrowsingContext, Navigation};
+use crate::model::common::{Extensible, JsInt, JsUint};
+use crate::model::script::StackTrace;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -15,6 +15,27 @@ pub enum NetworkCommand {
     ProvideResponse(ProvideResponse),
     RemoveIntercept(RemoveIntercept),
     SetCacheBehavior(SetCacheBehavior),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum NetworkResult {
+    AddInterceptResult(AddInterceptResult),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
+pub enum NetworkEvent {
+    AuthRequired(AuthRequired),
+    BeforeRequestSent(BeforeRequestSent),
+    FetchError(FetchError),
+    ResponseCompleted(ResponseCompleted),
+    ResponseStarted(ResponseStarted),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AuthChallenge {
+    pub scheme: String,
+    pub realm: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -35,46 +56,39 @@ impl AuthCredentials {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BaseParameters {
+    pub context: Option<BrowsingContext>,
+    pub is_blocked: bool,
+    pub navigation: Option<Navigation>,
+    pub redirect_count: JsUint,
+    pub request: RequestData,
+    pub timestamp: JsUint,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub intercepts: Option<Vec<Intercept>>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub enum BytesValue {
     StringValue(StringValue),
     Base64Value(Base64Value),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct StringValue {
     #[serde(rename = "type")]
-    pub string_value_type: String,
+    pub value_type: String,
     pub value: String,
 }
 
-impl StringValue {
-    pub fn new(value: String) -> Self {
-        Self {
-            string_value_type: "string".to_string(),
-            value,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Base64Value {
     #[serde(rename = "type")]
-    pub base64_value_type: String,
+    pub value_type: String,
     pub value: String,
 }
 
-impl Base64Value {
-    pub fn new(value: String) -> Self {
-        Self {
-            base64_value_type: "base64".to_string(),
-            value,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum SameSite {
     Strict,
@@ -82,7 +96,7 @@ pub enum SameSite {
     None,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Cookie {
     pub name: String,
     pub value: BytesValue,
@@ -96,35 +110,8 @@ pub struct Cookie {
     pub same_site: SameSite,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expiry: Option<JsUint>,
+    #[serde(flatten)]
     pub extensible: Extensible,
-}
-
-impl Cookie {
-    pub fn new(
-        name: String,
-        value: BytesValue,
-        domain: String,
-        path: String,
-        size: JsUint,
-        http_only: bool,
-        secure: bool,
-        same_site: SameSite,
-        expiry: Option<JsUint>,
-        extensible: Extensible,
-    ) -> Self {
-        Self {
-            name,
-            value,
-            domain,
-            path,
-            size,
-            http_only,
-            secure,
-            same_site,
-            expiry,
-            extensible,
-        }
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -139,6 +126,36 @@ impl CookieHeader {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FetchTimingInfo {
+    #[serde(rename = "timeOrigin")]
+    pub time_origin: f64,
+    #[serde(rename = "requestTime")]
+    pub request_time: f64,
+    #[serde(rename = "redirectStart")]
+    pub redirect_start: f64,
+    #[serde(rename = "redirectEnd")]
+    pub redirect_end: f64,
+    #[serde(rename = "fetchStart")]
+    pub fetch_start: f64,
+    #[serde(rename = "dnsStart")]
+    pub dns_start: f64,
+    #[serde(rename = "dnsEnd")]
+    pub dns_end: f64,
+    #[serde(rename = "connectStart")]
+    pub connect_start: f64,
+    #[serde(rename = "connectEnd")]
+    pub connect_end: f64,
+    #[serde(rename = "tlsStart")]
+    pub tls_start: f64,
+    #[serde(rename = "requestStart")]
+    pub request_start: f64,
+    #[serde(rename = "responseStart")]
+    pub response_start: f64,
+    #[serde(rename = "responseEnd")]
+    pub response_end: f64,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Header {
     pub name: String,
@@ -151,8 +168,67 @@ impl Header {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Initiator {
+    #[serde(rename = "columnNumber", skip_serializing_if = "Option::is_none")]
+    pub column_number: Option<JsUint>,
+    #[serde(rename = "lineNumber", skip_serializing_if = "Option::is_none")]
+    pub line_number: Option<JsUint>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub request: Option<Request>,
+    #[serde(rename = "stackTrace", skip_serializing_if = "Option::is_none")]
+    pub stack_trace: Option<StackTrace>,
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    pub initiator_type: Option<String>,
+}
+
 pub type Intercept = String;
 pub type Request = String;
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct RequestData {
+    pub request: Request,
+    pub url: String,
+    pub method: String,
+    pub headers: Vec<Header>,
+    pub cookies: Vec<Cookie>,
+    #[serde(rename = "headersSize")]
+    pub headers_size: JsUint,
+    #[serde(rename = "bodySize")]
+    pub body_size: Option<JsUint>,
+    pub destination: String,
+    #[serde(rename = "initiatorType")]
+    pub initiator_type: Option<String>,
+    pub timings: FetchTimingInfo,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ResponseContent {
+    pub size: JsUint,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ResponseData {
+    pub url: String,
+    pub protocol: String,
+    pub status: JsUint,
+    #[serde(rename = "statusText")]
+    pub status_text: String,
+    #[serde(rename = "fromCache")]
+    pub from_cache: bool,
+    pub headers: Vec<Header>,
+    #[serde(rename = "mimeType")]
+    pub mime_type: String,
+    #[serde(rename = "bytesReceived")]
+    pub bytes_received: JsUint,
+    #[serde(rename = "headersSize")]
+    pub headers_size: Option<JsUint>,
+    #[serde(rename = "bodySize")]
+    pub body_size: Option<JsUint>,
+    pub content: ResponseContent,
+    #[serde(rename = "authChallenges", skip_serializing_if = "Option::is_none")]
+    pub auth_challenges: Option<Vec<AuthChallenge>>,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SetCookieHeader {
@@ -304,6 +380,11 @@ pub enum InterceptPhase {
     ResponseStarted,
     #[serde(rename = "authRequired")]
     AuthRequired,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AddInterceptResult {
+    pub intercept: Intercept,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -615,4 +696,71 @@ impl SetCacheBehaviorParameters {
 pub enum CacheBehavior {
     Default,
     Bypass,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AuthRequired {
+    pub method: String,
+    pub params: AuthRequiredParameters,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AuthRequiredParameters {
+    #[serde(flatten)]
+    pub base: BaseParameters,
+    pub response: ResponseData,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BeforeRequestSent {
+    pub method: String,
+    pub params: BeforeRequestSentParameters,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BeforeRequestSentParameters {
+    #[serde(flatten)]
+    pub base: BaseParameters,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub initiator: Option<Initiator>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FetchError {
+    pub method: String,
+    pub params: FetchErrorParameters,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FetchErrorParameters {
+    #[serde(flatten)]
+    pub base: BaseParameters,
+    #[serde(rename = "errorText")]
+    pub error_text: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ResponseCompleted {
+    pub method: String,
+    pub params: ResponseCompletedParameters,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ResponseCompletedParameters {
+    #[serde(flatten)]
+    pub base: BaseParameters,
+    pub response: ResponseData,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ResponseStarted {
+    pub method: String,
+    pub params: ResponseStartedParameters,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ResponseStartedParameters {
+    #[serde(flatten)]
+    pub base: BaseParameters,
+    pub response: ResponseData,
 }

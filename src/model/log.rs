@@ -1,5 +1,7 @@
-use crate::local::{script, JsUint};
 use serde::{Deserialize, Serialize};
+
+use crate::model::common::JsUint;
+use crate::model::script::{RemoteValue, Source, StackTrace};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
@@ -27,11 +29,11 @@ pub enum Entry {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BaseLogEntry {
     pub level: Level,
-    pub source: script::Source,
+    pub source: Source,
     pub text: Option<String>,
     pub timestamp: JsUint,
     #[serde(rename = "stackTrace", skip_serializing_if = "Option::is_none")]
-    pub stack_trace: Option<script::StackTrace>,
+    pub stack_trace: Option<StackTrace>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -49,7 +51,7 @@ pub struct ConsoleLogEntry {
     #[serde(rename = "type")]
     pub log_type: String,
     pub method: String,
-    pub args: Vec<script::RemoteValue>,
+    pub args: Vec<RemoteValue>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

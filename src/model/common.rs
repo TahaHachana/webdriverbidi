@@ -1,9 +1,8 @@
-#![allow(clippy::all)]
-
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-pub type Extensible = HashMap<String, String>;
+use serde::{Deserialize, Serialize};
+
+pub type Extensible = HashMap<String, serde_json::Value>;
 
 // -9007199254740991..9007199254740991
 pub type JsInt = i64;
