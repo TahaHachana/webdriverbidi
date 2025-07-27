@@ -18,12 +18,11 @@ use tower_http::services::ServeDir;
 // --------------------------------------------------
 
 use webdriverbidi::model::browser::ClientWindowInfo;
-use webdriverbidi::model::browser::RemoveUserContextParameters;
+use webdriverbidi::model::browser::{CreateUserContextParameters, RemoveUserContextParameters};
 use webdriverbidi::model::browsing_context::{
     CreateParameters,
     CreateType,
-    // GetTreeParameters,
-    // GetTreeParameters,
+    GetTreeParameters,
     NavigateParameters,
     ReadinessState,
     // TraverseHistoryParameters,
@@ -93,7 +92,7 @@ pub mod browser {
     /// Create a user context.
     pub async fn create_user_context(bidi_session: &mut WebDriverBiDiSession) -> Result<String> {
         let user_context = bidi_session
-            .browser_create_user_context(EmptyParams::new())
+            .browser_create_user_context(CreateUserContextParameters::new(None, None, None))
             .await?
             .user_context;
 
@@ -163,20 +162,39 @@ pub mod browsing_context {
             .context;
         Ok(context)
     }
+
+    /// Get the browsing context at the specified index.
+    pub async fn get_nth_context(
+        session: &mut WebDriverBiDiSession,
+        index: usize,
+    ) -> Result<String> {
+        let get_tree_params = GetTreeParameters::new(None, None);
+        let get_tree_rslt = session.browsing_context_get_tree(get_tree_params).await?;
+        Ok(get_tree_rslt.contexts[index].context.clone())
+    }
+
+    /// Open a new tab.
+    pub async fn new_tab(session: &mut WebDriverBiDiSession) -> Result<String> {
+        let create_params = CreateParameters::new(CreateType::Tab, None, None, None);
+        let context = session
+            .browsing_context_create(create_params)
+            .await?
+            .context;
+        Ok(context)
+    }
 }
 
+fn target_context(context: &str) -> Target {
+    Target::ContextTarget(ContextTarget::new(context.to_string(), None))
+}
+
+fn local_value(str: &str) -> LocalValue {
+    LocalValue::PrimitiveProtocolValue(PrimitiveProtocolValue::StringValue(StringValue::new(
+        str.to_string(),
+    )))
+}
 pub mod local_storage {
     use super::*;
-
-    fn local_value(str: &str) -> LocalValue {
-        LocalValue::PrimitiveProtocolValue(PrimitiveProtocolValue::StringValue(StringValue::new(
-            str.to_string(),
-        )))
-    }
-
-    fn target_context(context: &str) -> Target {
-        Target::ContextTarget(ContextTarget::new(context.to_string(), None))
-    }
 
     /// Return the value identified by the key from the context's localStorage.
     pub async fn get(
@@ -292,16 +310,6 @@ pub mod axum_utils {
 
 // // // --------------------------------------------------
 
-// /// Get the browsing context at the specified index.
-// pub async fn get_nth_context(
-//     session: &mut WebDriverBiDiSession,
-//     index: usize,
-// ) -> Result<String, Box<dyn std::error::Error>> {
-//     let get_tree_params = GetTreeParameters::new(None, None);
-//     let get_tree_rslt = session.browsing_context_get_tree(get_tree_params).await?;
-//     Ok(get_tree_rslt.contexts[index].context.clone())
-// }
-
 // // /// Get the first browsing context from the browsing context tree.
 // // pub async fn get_first_context(
 // //     session: &mut WebDriverBiDiSession,
@@ -310,16 +318,6 @@ pub mod axum_utils {
 // //     let get_tree_rslt = session.browsing_context_get_tree(get_tree_params).await?;
 // //     Ok(get_tree_rslt.contexts[0].context.clone())
 // // }
-
-// /// Open a new tab.
-// pub async fn new_tab(session: &mut WebDriverBiDiSession) -> Result<String> {
-//     let create_params = CreateParameters::new(CreateType::Tab, None, None, None);
-//     let context = session
-//         .browsing_context_create(create_params)
-//         .await?
-//         .context;
-//     Ok(context)
-// }
 
 // // // --------------------------------------------------
 
@@ -465,31 +463,31 @@ pub mod axum_utils {
 //     NamedFile::open(path).unwrap()
 // }
 
-// pub async fn is_element_focused(
-//     bidi_session: &mut WebDriverBiDiSession,
-//     context: &str,
-//     selector: &str,
-// ) -> Result<bool> {
-//     let function_declaration = "(selector) => {
-//         return document.querySelector(selector) === document.activeElement;
-//     }"
-//     .to_string();
-//     let selector_local_value = local_value(selector);
-//     let args = Some(vec![selector_local_value]);
-//     let params = CallFunctionParameters::new(
-//         function_declaration,
-//         false,
-//         target_context(context),
-//         args,
-//         None,
-//         None,
-//         None,
-//         None,
-//     );
-//     let rslt = bidi_session.script_call_function(params).await?;
-//     debug!("is_element_focused result: {:?}", rslt);
-//     Ok(true)
-// }
+pub async fn is_element_focused(
+    bidi_session: &mut WebDriverBiDiSession,
+    context: &str,
+    selector: &str,
+) -> Result<bool> {
+    let function_declaration = "(selector) => {
+        return document.querySelector(selector) === document.activeElement;
+    }"
+    .to_string();
+    let selector_local_value = local_value(selector);
+    let args = Some(vec![selector_local_value]);
+    let params = CallFunctionParameters::new(
+        function_declaration,
+        false,
+        target_context(context),
+        args,
+        None,
+        None,
+        None,
+        None,
+    );
+    let rslt = bidi_session.script_call_function(params).await?;
+    debug!("is_element_focused result: {:?}", rslt);
+    Ok(true)
+}
 
 // // async def is_element_focused(bidi_session, context: Mapping[str, Any], selector: str) -> bool:
 // //     result = await bidi_session.script.call_function(
@@ -504,19 +502,19 @@ pub mod axum_utils {
 
 // //     return result["value"]
 
-// pub async fn assert_document_status(
-//     bidi_session: &mut WebDriverBiDiSession,
-//     context: &str,
-// ) -> Result<bool> {
-//     let visibility_state = get_visibility_state(bidi_session, context).await?;
-//     let doc_focus = get_document_focus(bidi_session, context).await?;
+pub async fn assert_document_status(
+    bidi_session: &mut WebDriverBiDiSession,
+    context: &str,
+) -> Result<bool> {
+    let visibility_state = get_visibility_state(bidi_session, context).await?;
+    let doc_focus = get_document_focus(bidi_session, context).await?;
 
-//     Ok(visibility_state == "visible" && doc_focus)
-//     // assert_eq!(visibility_state, "visible");
-//     // assert_eq!(doc_focus, true);
+    Ok(visibility_state == "visible" && doc_focus)
+    // assert_eq!(visibility_state, "visible");
+    // assert_eq!(doc_focus, true);
 
-//     // true
-// }
+    // true
+}
 
 // // async def assert_document_status(bidi_session, context, visible, focused):
 // //     state = "visible" if visible else "hidden"
@@ -526,50 +524,50 @@ pub mod axum_utils {
 // //
 // //
 
-// pub async fn get_visibility_state(
-//     bidi_session: &mut WebDriverBiDiSession,
-//     context: &str,
-// ) -> Result<String> {
-//     let function_declaration = r#"() => {
-//         return document.visibilityState;
-//     }"#
-//     .to_string();
-//     let params = CallFunctionParameters::new(
-//         function_declaration,
-//         false,
-//         target_context(context),
-//         None,
-//         None,
-//         None,
-//         None,
-//         None,
-//     );
-//     let rslt = bidi_session.script_call_function(params).await?;
-//     match rslt {
-//         EvaluateResult::EvaluateResultSuccess(eval_rslt_success) => {
-//             match eval_rslt_success.result {
-//                 RemoteValue::PrimitiveProtocolValue(
-//                     webdriverbidi::local::script::PrimitiveProtocolValue::StringValue(string_value),
-//                 ) => {
-//                     debug!("get_visibility_state result: {:?}", string_value);
-//                     Ok(string_value.value)
-//                 }
-//                 remote_val => Err(anyhow::anyhow!(
-//                 "Received EvaluateResultSuccess but not a string value, actual remote value: {:?}",
-//                 remote_val
-//             )),
-//             }
-//         }
-//         eval_rslt => Err(anyhow::anyhow!(
-//             "Received unexpected EvaluateResult: {:?}",
-//             eval_rslt
-//         )),
-//     }
-//     // debug!("get_visibility_state result: {:?}", rslt);
-//     // // browsing_context::utils: get_visibility_state result: EvaluateResultSuccess(EvaluateResultSuccess { result_type: "success", result: PrimitiveProtocolValue(StringValue(StringValue { value_type: "string", value: "visible" })), realm: "030a41fd-d74b-4747-a4b1-5064432a2aeb" })
+pub async fn get_visibility_state(
+    bidi_session: &mut WebDriverBiDiSession,
+    context: &str,
+) -> Result<String> {
+    let function_declaration = r#"() => {
+        return document.visibilityState;
+    }"#
+    .to_string();
+    let params = CallFunctionParameters::new(
+        function_declaration,
+        false,
+        target_context(context),
+        None,
+        None,
+        None,
+        None,
+        None,
+    );
+    let rslt = bidi_session.script_call_function(params).await?;
+    match rslt {
+        EvaluateResult::EvaluateResultSuccess(eval_rslt_success) => {
+            match eval_rslt_success.result {
+                RemoteValue::PrimitiveProtocolValue(
+                    webdriverbidi::model::script::PrimitiveProtocolValue::StringValue(string_value),
+                ) => {
+                    debug!("get_visibility_state result: {:?}", string_value);
+                    Ok(string_value.value)
+                }
+                remote_val => Err(anyhow::anyhow!(
+                    "Received EvaluateResultSuccess but not a string value, actual remote value: {:?}",
+                    remote_val
+                )),
+            }
+        }
+        eval_rslt => Err(anyhow::anyhow!(
+            "Received unexpected EvaluateResult: {:?}",
+            eval_rslt
+        )),
+    }
+    // debug!("get_visibility_state result: {:?}", rslt);
+    // // browsing_context::utils: get_visibility_state result: EvaluateResultSuccess(EvaluateResultSuccess { result_type: "success", result: PrimitiveProtocolValue(StringValue(StringValue { value_type: "string", value: "visible" })), realm: "030a41fd-d74b-4747-a4b1-5064432a2aeb" })
 
-//     // Ok(String::from(""))
-// }
+    // Ok(String::from(""))
+}
 
 // // async def get_visibility_state(bidi_session, context: Mapping[str, Any]) -> str:
 // //     result = await bidi_session.script.call_function(
@@ -580,50 +578,50 @@ pub mod axum_utils {
 // //         await_promise=False)
 // //     return result["value"]
 
-// pub async fn get_document_focus(
-//     bidi_session: &mut WebDriverBiDiSession,
-//     context: &str,
-// ) -> Result<bool> {
-//     let function_declaration = r#"() => {
-//         return document.hasFocus();
-//     }"#
-//     .to_string();
-//     let params = CallFunctionParameters::new(
-//         function_declaration,
-//         false,
-//         target_context(context),
-//         None,
-//         None,
-//         None,
-//         None,
-//         None,
-//     );
-//     let rslt = bidi_session.script_call_function(params).await?;
-//     match rslt {
-//         EvaluateResult::EvaluateResultSuccess(eval_rslt_success) => {
-//             match eval_rslt_success.result {
-//                 RemoteValue::PrimitiveProtocolValue(
-//                     webdriverbidi::local::script::PrimitiveProtocolValue::BooleanValue(bool_value),
-//                 ) => {
-//                     debug!("get_document_focus result: {:?}", bool_value);
-//                     Ok(bool_value.value)
-//                 }
-//                 remote_val => Err(anyhow::anyhow!(
-//                 "Received EvaluateResultSuccess but not a boolean value, actual remote value: {:?}",
-//                 remote_val
-//             )),
-//             }
-//         }
-//         eval_rslt => Err(anyhow::anyhow!(
-//             "Received unexpected EvaluateResult: {:?}",
-//             eval_rslt
-//         )),
-//     }
+pub async fn get_document_focus(
+    bidi_session: &mut WebDriverBiDiSession,
+    context: &str,
+) -> Result<bool> {
+    let function_declaration = r#"() => {
+        return document.hasFocus();
+    }"#
+    .to_string();
+    let params = CallFunctionParameters::new(
+        function_declaration,
+        false,
+        target_context(context),
+        None,
+        None,
+        None,
+        None,
+        None,
+    );
+    let rslt = bidi_session.script_call_function(params).await?;
+    match rslt {
+        EvaluateResult::EvaluateResultSuccess(eval_rslt_success) => {
+            match eval_rslt_success.result {
+                RemoteValue::PrimitiveProtocolValue(
+                    webdriverbidi::model::script::PrimitiveProtocolValue::BooleanValue(bool_value),
+                ) => {
+                    debug!("get_document_focus result: {:?}", bool_value);
+                    Ok(bool_value.value)
+                }
+                remote_val => Err(anyhow::anyhow!(
+                    "Received EvaluateResultSuccess but not a boolean value, actual remote value: {:?}",
+                    remote_val
+                )),
+            }
+        }
+        eval_rslt => Err(anyhow::anyhow!(
+            "Received unexpected EvaluateResult: {:?}",
+            eval_rslt
+        )),
+    }
 
-//     // debug!("get_document_focus result: {:?}", rslt);
-//     // // browsing_context::utils: get_document_focus result: EvaluateResultSuccess(EvaluateResultSuccess { result_type: "success", result: PrimitiveProtocolValue(BooleanValue(BooleanValue { value_type: "boolean", value: true })), realm: "030a41fd-d74b-4747-a4b1-5064432a2aeb" })
-//     // Ok(String::from(""))
-// }
+    // debug!("get_document_focus result: {:?}", rslt);
+    // // browsing_context::utils: get_document_focus result: EvaluateResultSuccess(EvaluateResultSuccess { result_type: "success", result: PrimitiveProtocolValue(BooleanValue(BooleanValue { value_type: "boolean", value: true })), realm: "030a41fd-d74b-4747-a4b1-5064432a2aeb" })
+    // Ok(String::from(""))
+}
 
 // async fn get_device_pixel_ratio(
 //     bidi_session: &mut WebDriverBiDiSession,

@@ -468,24 +468,22 @@ pub struct FunctionRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RegExpRemoteValue {
+    #[serde(flatten)]
+    pub local_value: RegExpLocalValue,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
     #[serde(rename = "internalId", skip_serializing_if = "Option::is_none")]
     pub internal_id: Option<InternalId>,
-    #[serde(rename = "type")]
-    pub value_type: String,
-    pub value: RegExpValue,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DateRemoteValue {
+    #[serde(flatten)]
+    pub local_value: DateLocalValue,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
     #[serde(rename = "internalId", skip_serializing_if = "Option::is_none")]
     pub internal_id: Option<InternalId>,
-    #[serde(rename = "type")]
-    pub value_type: String,
-    pub value: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

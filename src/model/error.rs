@@ -50,6 +50,8 @@ pub enum ErrorCode {
     MoveTargetOutOfBounds,
     #[serde(rename = "no such alert")]
     NoSuchAlert,
+    #[serde(rename = "no such network collector")]
+    NoSuchNetworkCollector,
     #[serde(rename = "no such element")]
     NoSuchElement,
     #[serde(rename = "no such frame")]
@@ -60,6 +62,8 @@ pub enum ErrorCode {
     NoSuchHistoryEntry,
     #[serde(rename = "no such intercept")]
     NoSuchIntercept,
+    #[serde(rename = "no such network data")]
+    NoSuchNetworkData,
     #[serde(rename = "no such node")]
     NoSuchNode,
     #[serde(rename = "no such request")]
@@ -82,6 +86,8 @@ pub enum ErrorCode {
     UnableToSetCookie,
     #[serde(rename = "unable to set file input")]
     UnableToSetFileInput,
+    #[serde(rename = "unavailable network data")]
+    UnavailableNetworkData,
     #[serde(rename = "underspecified storage partition")]
     UnderspecifiedStoragePartition,
     #[serde(rename = "unknown command")]

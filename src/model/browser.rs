@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::model::common::{EmptyParams, JsInt, JsUint};
+use crate::{commands::session, model::common::{EmptyParams, JsInt, JsUint}};
+use crate::model::session::{ProxyConfiguration, UserPromptHandler};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -91,14 +92,38 @@ impl Close {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUserContext {
     pub method: String,
-    pub params: EmptyParams,
+    pub params: CreateUserContextParameters,
 }
 
 impl CreateUserContext {
-    pub fn new(params: EmptyParams) -> Self {
+    pub fn new(params: CreateUserContextParameters) -> Self {
         Self {
             method: "browser.createUserContext".to_string(),
             params,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateUserContextParameters {
+    #[serde(rename = "acceptInsecureCerts", skip_serializing_if = "Option::is_none")]
+    pub accept_insecure_certs: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub proxy: Option<ProxyConfiguration>,
+    #[serde(rename = "unhandledPromptBehavior", skip_serializing_if = "Option::is_none")]
+    pub unhandled_prompt_behavior: Option<UserPromptHandler>,
+}
+
+impl CreateUserContextParameters {
+    pub fn new(
+        accept_insecure_certs: Option<bool>,
+        proxy: Option<ProxyConfiguration>,
+        unhandled_prompt_behavior: Option<UserPromptHandler>,
+    ) -> Self {
+        Self {
+            accept_insecure_certs,
+            proxy,
+            unhandled_prompt_behavior,
         }
     }
 }

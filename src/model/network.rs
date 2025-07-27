@@ -1,18 +1,23 @@
 use serde::{Deserialize, Serialize};
 
 use crate::model::browsing_context::{BrowsingContext, Navigation};
+use crate::model::browser::UserContext;
 use crate::model::common::{Extensible, JsInt, JsUint};
 use crate::model::script::StackTrace;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum NetworkCommand {
+    AddDataCollector(AddDataCollector),
     AddIntercept(AddIntercept),
     ContinueRequest(ContinueRequest),
     ContinueResponse(ContinueResponse),
     ContinueWithAuth(ContinueWithAuth),
+    DisownData(DisownData),
     FailRequest(FailRequest),
+    GetData(GetData),
     ProvideResponse(ProvideResponse),
+    RemoveDataCollector(RemoveDataCollector),
     RemoveIntercept(RemoveIntercept),
     SetCacheBehavior(SetCacheBehavior),
 }
@@ -88,12 +93,16 @@ pub struct Base64Value {
     pub value: String,
 }
 
+pub type Collector = String;
+pub type CollectorType = String;
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum SameSite {
     Strict,
     Lax,
     None,
+    Default,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -125,6 +134,8 @@ impl CookieHeader {
         Self { name, value }
     }
 }
+
+pub type DataType = String;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FetchTimingInfo {
@@ -333,6 +344,33 @@ impl UrlPatternString {
         }
     }
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AddDataCollector {
+    pub method: String,
+    pub params: AddDataCollectorParameters,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AddDataCollectorParameters {
+    #[serde(rename = "dataTypes")]
+    pub data_types: Vec<DataType>,
+    #[serde(rename = "maxEncodedDataSize")]
+    pub max_encoded_data_size: JsUint,
+    #[serde(rename = "collectorType", default, skip_serializing_if = "Option::is_none")]
+    pub collector_type: Option<CollectorType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contexts: Option<Vec<BrowsingContext>>,
+    #[serde(rename = "userContexts", skip_serializing_if = "Option::is_none")]
+    pub user_contexts: Option<Vec<UserContext>>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AddDataCollectorResult {
+    pub collector: Collector,
+}
+
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AddIntercept {
@@ -559,6 +597,20 @@ pub enum NoCredentialsAction {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct DisownData {
+    pub method: String,
+    pub params: DisownDataParameters,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DisownDataParameters {
+    #[serde(rename = "dataType")]
+    pub data_type: DataType,
+    pub collector: Collector,
+    pub request: Request,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FailRequest {
     pub method: String,
     pub params: FailRequestParameters,
@@ -582,6 +634,28 @@ impl FailRequestParameters {
     pub fn new(request: Request) -> Self {
         Self { request }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GetData {
+    pub method: String,
+    pub params: GetDataParameters,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GetDataParameters {
+    #[serde(rename = "dataType")]
+    pub data_type: DataType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub collector: Option<Collector>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub disown: Option<bool>,
+    pub request: Request,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GetDataResult {
+    pub bytes: BytesValue,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -632,6 +706,22 @@ impl ProvideResponseParameters {
             status_code,
         }
     }
+}
+
+// network.RemoveDataCollector = (
+//   method: "network.removeDataCollector",
+//   params: network.RemoveDataCollectorParameters
+// )
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RemoveDataCollector {
+    pub method: String,
+    pub params: RemoveDataCollectorParameters,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RemoveDataCollectorParameters {
+    pub collector: Collector,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -40,6 +40,7 @@ pub enum BrowsingContextEvent {
     ContextCreated(ContextCreated),
     ContextDestroyed(ContextDestroyed),
     DomContentLoaded(DomContentLoaded),
+    DownloadEnd(DownloadEnd),
     DownloadWillBegin(DownloadWillBegin),
     FragmentNavigated(FragmentNavigated),
     HistoryUpdated(HistoryUpdated),
@@ -899,6 +900,7 @@ pub struct HistoryUpdated {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct HistoryUpdatedParameters {
     pub context: BrowsingContext,
+    pub timestamp: JsUint,
     pub url: String,
 }
 
@@ -924,6 +926,34 @@ pub struct DownloadWillBegin {
 pub struct DownloadWillBeginParams {
     #[serde(rename = "suggestedFilename")]
     pub suggested_filename: String,
+    #[serde(flatten)]
+    pub base: BaseNavigationInfo,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DownloadEnd {
+    pub method: String,
+    pub params: DownloadEndParams,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
+pub enum DownloadEndParams {
+    DownloadCanceled(DownloadCanceledParams),
+    DownloadComplete(DownloadCompleteParams),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DownloadCanceledParams {
+    pub status: String,
+    #[serde(flatten)]
+    pub base: BaseNavigationInfo,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DownloadCompleteParams {
+    pub status: String,
+    pub filepath: Option<String>,
     #[serde(flatten)]
     pub base: BaseNavigationInfo,
 }

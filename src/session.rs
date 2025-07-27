@@ -545,7 +545,7 @@ impl WebDriverBiDiSession {
     /// A result containing the `CreateUserContextResult` or a `CommandError`.
     pub async fn browser_create_user_context(
         &mut self,
-        params: EmptyParams,
+        params: CreateUserContextParameters,
     ) -> Result<CreateUserContextResult, CommandError> {
         commands::browser::create_user_context(self, params).await
     }

@@ -18,7 +18,7 @@ define_command!(CloseCommand, Close, EmptyParams, close, EmptyResult);
 define_command!(
     CreateUserContextCommand,
     CreateUserContext,
-    EmptyParams,
+    CreateUserContextParameters,
     create_user_context,
     CreateUserContextResult
 );

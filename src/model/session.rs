@@ -84,8 +84,6 @@ pub struct DirectProxyConfiguration {
 pub struct ManualProxyConfiguration {
     #[serde(rename = "proxyType")]
     pub proxy_type: String,
-    #[serde(rename = "ftpProxy", skip_serializing_if = "Option::is_none")]
-    pub ftp_proxy: Option<String>,
     #[serde(rename = "httpProxy", skip_serializing_if = "Option::is_none")]
     pub http_proxy: Option<String>,
     #[serde(rename = "sslProxy", skip_serializing_if = "Option::is_none")]

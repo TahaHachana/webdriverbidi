@@ -7,6 +7,9 @@ use crate::model::browsing_context::BrowsingContext;
 #[serde(untagged)]
 pub enum EmulationCommand {
     SetGeolocationOverride(SetGeolocationOverride),
+    SetLocaleOverride(SetLocaleOverride),
+    SetScreenOrientationOverride(SetScreenOrientationOverride),
+    SetTimezoneOverride(SetTimezoneOverride),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -24,23 +27,46 @@ impl SetGeolocationOverride {
     }
 }
 
+
 #[derive(Debug, Serialize, Deserialize)]
-pub struct SetGeolocationOverrideParameters {
-    pub coordinates: Option<GeolocationCoordinates>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    contexts: Option<Vec<BrowsingContext>>,
-    #[serde(rename = "userContexts", skip_serializing_if = "Option::is_none")]
-    user_contexts: Option<Vec<UserContext>>,
+#[serde(untagged)]
+pub enum SetGeolocationOverrideParameters {
+    WithCoordinates {
+        coordinates: Option<GeolocationCoordinates>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        contexts: Option<Vec<BrowsingContext>>,
+        #[serde(rename = "userContexts", skip_serializing_if = "Option::is_none")]
+        user_contexts: Option<Vec<UserContext>>,
+    },
+    WithError {
+        error: GeolocationPositionError,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        contexts: Option<Vec<BrowsingContext>>,
+        #[serde(rename = "userContexts", skip_serializing_if = "Option::is_none")]
+        user_contexts: Option<Vec<UserContext>>,
+    },
 }
 
 impl SetGeolocationOverrideParameters {
-    pub fn new(
+    pub fn with_coordinates(
         coordinates: Option<GeolocationCoordinates>,
         contexts: Option<Vec<BrowsingContext>>,
         user_contexts: Option<Vec<UserContext>>,
     ) -> Self {
-        Self {
+        Self::WithCoordinates {
             coordinates,
+            contexts,
+            user_contexts,
+        }
+    }
+
+    pub fn with_error(
+        error: GeolocationPositionError,
+        contexts: Option<Vec<BrowsingContext>>,
+        user_contexts: Option<Vec<UserContext>>,
+    ) -> Self {
+        Self::WithError {
+            error,
             contexts,
             user_contexts,
         }
@@ -84,4 +110,87 @@ impl GeolocationCoordinates {
     fn default_accuracy() -> f64 {
         1.0
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GeolocationPositionError {
+    #[serde(rename = "type")]
+    pub error_type: String,
+}
+
+impl GeolocationPositionError {
+    pub fn position_unavailable() -> Self {
+        Self {
+            error_type: "positionUnavailable".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SetLocaleOverride {
+    pub method: String,
+    pub params: SetLocaleOverrideParameters,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SetLocaleOverrideParameters {
+    pub locale: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contexts: Option<Vec<BrowsingContext>>,
+    #[serde(rename = "userContexts", skip_serializing_if = "Option::is_none")]
+    pub user_contexts: Option<Vec<UserContext>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SetScreenOrientationOverride {
+    pub method: String,
+    pub params: SetScreenOrientationOverrideParameters,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase", untagged)]
+pub enum ScreenOrientationNatural {
+    Portrait,
+    Landscape,
+} 
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case", untagged)]
+pub enum ScreenOrientationType {
+    PortraitPrimary,
+    PortraitSecondary,
+    LandscapePrimary,
+    LandscapeSecondary,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ScreenOrientation {
+    pub natural: ScreenOrientationNatural,
+    #[serde(rename = "type")]
+    pub orientation_type: ScreenOrientationType,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SetScreenOrientationOverrideParameters {
+    #[serde(rename = "screenOrientation")]
+    pub screen_orientation: Option<ScreenOrientation>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contexts: Option<Vec<BrowsingContext>>,
+    #[serde(rename = "userContexts", skip_serializing_if = "Option::is_none")]
+    pub user_contexts: Option<Vec<UserContext>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SetTimezoneOverride {
+    pub method: String,
+    pub params: SetTimezoneOverrideParameters,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SetTimezoneOverrideParameters {
+    pub timezone: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contexts: Option<Vec<BrowsingContext>>,
+    #[serde(rename = "userContexts", skip_serializing_if = "Option::is_none")]
+    pub user_contexts: Option<Vec<UserContext>>,
 }

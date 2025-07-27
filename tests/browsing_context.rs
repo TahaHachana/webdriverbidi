@@ -1,8 +1,9 @@
-// use webdriverbidi::remote::browsing_context::ActivateParameters;
-// use webdriverbidi::remote::script::{ContextTarget, EvaluateParameters, Target};
+use anyhow::Result;
+
+use webdriverbidi::model::browsing_context::ActivateParameters;
+use webdriverbidi::model::script::{ContextTarget, EvaluateParameters, Target};
 
 mod utils;
-// use utils::common::*;
 
 // // https://github.com/web-platform-tests/wpt/tree/master/webdriver/tests/bidi/browsing_context/activate
 // mod activate {
@@ -10,82 +11,55 @@ mod utils;
 //     use super::*;
 
 //     #[tokio::test]
-//     async fn test_switch_between_contexts() {
-//         let mut bidi_session = init_session().await.unwrap();
-//         let top_context = utils::get_nth_context(&mut bidi_session, 0).await.unwrap();
-//         let new_context = utils::new_tab(&mut bidi_session).await.unwrap();
+//     async fn test_switch_between_contexts() -> Result<()> {
+//         let mut bidi_session = utils::session::init().await?;
+
+//         let top_context = utils::browsing_context::get_nth_context(&mut bidi_session, 0).await?;
+//         let new_context = utils::browsing_context::new_tab(&mut bidi_session).await?;
 
 //         bidi_session
 //             .browsing_context_activate(ActivateParameters::new(top_context.clone()))
-//             .await
-//             .unwrap();
+//             .await?;
 
-//         let initial_top_context_status =
-//             utils::assert_document_status(&mut bidi_session, &top_context)
-//                 .await
-//                 .unwrap();
-//         let initial_new_context_status =
-//             utils::assert_document_status(&mut bidi_session, &new_context)
-//                 .await
-//                 .unwrap();
+//         let top_context_initial_status =
+//             utils::assert_document_status(&mut bidi_session, &top_context).await?;
+//         let new_context_initial_status =
+//             utils::assert_document_status(&mut bidi_session, &new_context).await?;
 
 //         bidi_session
 //             .browsing_context_activate(ActivateParameters::new(new_context.clone()))
-//             .await
-//             .unwrap();
+//             .await?;
 
-//         let final_top_context_status =
-//             utils::assert_document_status(&mut bidi_session, &top_context)
-//                 .await
-//                 .unwrap();
-//         let final_new_context_status =
-//             utils::assert_document_status(&mut bidi_session, &new_context)
-//                 .await
-//                 .unwrap();
+//         let top_context_final_status =
+//             utils::assert_document_status(&mut bidi_session, &top_context).await?;
+//         let new_context_final_status =
+//             utils::assert_document_status(&mut bidi_session, &new_context).await?;
 
-//         utils::close_session(&mut bidi_session).await.unwrap();
+//         utils::session::close(&mut bidi_session).await?;
 
-//         assert!(initial_top_context_status);
-//         assert!(!initial_new_context_status);
+//         assert!(top_context_initial_status);
+//         assert!(!new_context_initial_status);
 
-//         assert!(!final_top_context_status);
-//         assert!(final_new_context_status);
+//         assert!(!top_context_final_status);
+//         assert!(new_context_final_status);
+
+//         return Ok(());
 //     }
 
+//     const TEST_KEEPS_ELEMENT_FOCUSED: &str = "";
+
 //     #[tokio::test]
-//     async fn test_keeps_element_focused() {
-//         let mut bidi_session = utils::init_session().await.unwrap();
+//     async fn test_keeps_element_focused() -> Result<()> {
+//         let mut bidi_session = utils::session::init().await?;
 
-//         let top_context = utils::get_nth_context(&mut bidi_session, 0).await.unwrap();
+//         let top_context = utils::browsing_context::get_nth_context(&mut bidi_session, 0).await?;
 
-//         let addr = format!("{}:0", utils::HOST);
-//         let server = HttpServer::new(|| {
-//             App::new().route(
-//                 utils::TMP_ROUTE,
-//                 web::get().to(utils::inline::inline_handler),
-//             )
-//         })
-//         .bind(addr)
-//         .unwrap();
+//         let (url, server_handle) =
+//             utils::axum_utils::serve_static(TEST_KEEPS_ELEMENT_FOCUSED).await?;
 
-//         let addr = server.addrs()[0];
-//         let server_handle = tokio::spawn(server.run());
-//         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+//         let new_tab = utils::browsing_context::new_tab(&mut bidi_session).await?;
 
-//         let inline_url = utils::inline::build_inline(
-//             |path, query| format!("http://{}{}?{}", addr, path, query),
-//             "<textarea autofocus></textarea><input>",
-//             Some("html"),
-//             None,
-//             None,
-//             None,
-//         );
-
-//         let new_tab = utils::new_tab(&mut bidi_session).await.unwrap();
-
-//         utils::navigate(&mut bidi_session, new_tab.clone(), inline_url.clone())
-//             .await
-//             .unwrap();
+//         utils::browsing_context::navigate(&mut bidi_session, new_tab.clone(), url.clone()).await?;
 
 //         let params = EvaluateParameters::new(
 //             r#"document.querySelector("input").focus()"#.to_string(),
@@ -96,100 +70,66 @@ mod utils;
 //             None,
 //         );
 
-//         bidi_session.script_evaluate(params).await.unwrap();
+//         bidi_session.script_evaluate(params).await?;
 
-//         let is_focused_1 = utils::is_element_focused(&mut bidi_session, new_tab.as_str(), "input")
-//             .await
-//             .unwrap();
+//         let is_focused_1 =
+//             utils::is_element_focused(&mut bidi_session, new_tab.as_str(), "input").await?;
 
 //         bidi_session
 //             .browsing_context_activate(ActivateParameters::new(top_context))
-//             .await
-//             .unwrap();
+//             .await?;
 
-//         let is_focused_2 = utils::is_element_focused(&mut bidi_session, new_tab.as_str(), "input")
-//             .await
-//             .unwrap();
+//         let is_focused_2 =
+//             utils::is_element_focused(&mut bidi_session, new_tab.as_str(), "input").await?;
 
 //         bidi_session
 //             .browsing_context_activate(ActivateParameters::new(new_tab.clone()))
-//             .await
-//             .unwrap();
+//             .await?;
 
-//         let is_focused_3 = utils::is_element_focused(&mut bidi_session, new_tab.as_str(), "input")
-//             .await
-//             .unwrap();
+//         let is_focused_3 =
+//             utils::is_element_focused(&mut bidi_session, new_tab.as_str(), "input").await?;
 
-//         utils::close_session(&mut bidi_session).await.unwrap();
+//         utils::session::close(&mut bidi_session).await?;
 //         server_handle.abort();
 
 //         assert!(is_focused_1);
 //         assert!(is_focused_2);
 //         assert!(is_focused_3);
+
+//         Ok(())
 //     }
 
+//     const TEST_MULTIPLE_ACTIVATION_HTML: &str = "test_multiple_activation.html";
+
 //     #[tokio::test]
-//     async fn test_multiple_activation() {
-//         let mut bidi_session = utils::init_session().await.unwrap();
+//     async fn test_multiple_activation() -> Result<()> {
+//         let (url, server_handle) =
+//             utils::axum_utils::serve_static(TEST_MULTIPLE_ACTIVATION_HTML).await?;
 
-//         let addr = format!("{}:0", utils::HOST);
-//         let server = HttpServer::new(|| {
-//             App::new().route(
-//                 utils::TMP_ROUTE,
-//                 web::get().to(utils::inline::inline_handler),
-//             )
-//         })
-//         .bind(addr)
-//         .unwrap();
+//         let mut bidi_session = utils::session::init().await?;
 
-//         let addr = server.addrs()[0];
-//         let server_handle = tokio::spawn(server.run());
-//         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+//         let new_tab = utils::browsing_context::new_tab(&mut bidi_session).await?;
+//         utils::browsing_context::navigate(&mut bidi_session, new_tab.clone(), url.clone()).await?;
 
-//         let inline_url = utils::inline::build_inline(
-//             |path, query| format!("http://{}{}?{}", addr, path, query),
-//             "<input><script>document.querySelector('input').focus();</script>",
-//             Some("html"),
-//             None,
-//             None,
-//             None,
-//         );
-
-//         let new_tab = utils::new_tab(&mut bidi_session).await.unwrap();
-//         utils::navigate(&mut bidi_session, new_tab.clone(), inline_url.clone())
-//             .await
-//             .unwrap();
-
-//         let initial_status = utils::assert_document_status(&mut bidi_session, &new_tab)
-//             .await
-//             .unwrap();
-//         let is_focused_1 = utils::is_element_focused(&mut bidi_session, new_tab.as_str(), "input")
-//             .await
-//             .unwrap();
+//         let initial_status = utils::assert_document_status(&mut bidi_session, &new_tab).await?;
+//         let is_focused_1 =
+//             utils::is_element_focused(&mut bidi_session, new_tab.as_str(), "input").await?;
 
 //         bidi_session
 //             .browsing_context_activate(ActivateParameters::new(new_tab.clone()))
-//             .await
-//             .unwrap();
-//         let middle_status = utils::assert_document_status(&mut bidi_session, &new_tab)
-//             .await
-//             .unwrap();
-//         let is_focused_2 = utils::is_element_focused(&mut bidi_session, new_tab.as_str(), "input")
-//             .await
-//             .unwrap();
+//             .await?;
+//         let middle_status = utils::assert_document_status(&mut bidi_session, &new_tab).await?;
+//         let is_focused_2 =
+//             utils::is_element_focused(&mut bidi_session, new_tab.as_str(), "input").await?;
 
 //         bidi_session
 //             .browsing_context_activate(ActivateParameters::new(new_tab.clone()))
-//             .await
-//             .unwrap();
-//         let final_status = utils::assert_document_status(&mut bidi_session, &new_tab)
-//             .await
-//             .unwrap();
-//         let is_focused_3 = utils::is_element_focused(&mut bidi_session, new_tab.as_str(), "input")
-//             .await
-//             .unwrap();
+//             .await?;
+//         let final_status = utils::assert_document_status(&mut bidi_session, &new_tab).await?;
+//         let is_focused_3 =
+//             utils::is_element_focused(&mut bidi_session, new_tab.as_str(), "input").await?;
 
-//         utils::close_session(&mut bidi_session).await.unwrap();
+//         utils::session::close(&mut bidi_session).await?;
 //         server_handle.abort();
 
 //         assert!(initial_status);
@@ -198,21 +138,23 @@ mod utils;
 //         assert!(is_focused_2);
 //         assert!(final_status);
 //         assert!(is_focused_3);
+
+//         return Ok(());
 //     }
 // }
 
-// // async def get_viewport_dimensions(bidi_session, context: str,
-// //       with_scrollbar: bool = True, quirk_mode: bool = False):
-// //     if with_scrollbar:
-// //         expression = """
-// //             ({
-// //                 height: window.innerHeight,
-// //                 width: window.innerWidth,
-// //             });
-// //         """
-// //     else:
-// //         # The way the viewport height without the scrollbar can be calculated
-// //         # is different in quirks mode. In quirks mode, the viewport height is
+// // // async def get_viewport_dimensions(bidi_session, context: str,
+// // //       with_scrollbar: bool = True, quirk_mode: bool = False):
+// // //     if with_scrollbar:
+// // //         expression = """
+// // //             ({
+// // //                 height: window.innerHeight,
+// // //                 width: window.innerWidth,
+// // //             });
+// // //         """
+// // //     else:
+// // //         # The way the viewport height without the scrollbar can be calculated
+// // //         # is different in quirks mode. In quirks mode, the viewport height is
 // //         # the height of the body element, while in standard mode it is the
 // //         # height of the document element.
 // //         element_expression = \
