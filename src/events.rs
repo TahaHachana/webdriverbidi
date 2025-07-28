@@ -13,6 +13,7 @@ pub enum EventType {
     BrowsingContextDomContentLoaded,
     BrowsingContextLoad,
     BrowsingContextDownloadWillBegin,
+    BrowsingContextDownloadEnd,
     BrowsingContextNavigationAborted,
     BrowsingContextNavigationCommitted,
     BrowsingContextNavigationFailed,
@@ -54,6 +55,7 @@ impl FromStr for EventType {
             "browsingContext.domContentLoaded" => Ok(EventType::BrowsingContextDomContentLoaded),
             "browsingContext.load" => Ok(EventType::BrowsingContextLoad),
             "browsingContext.downloadWillBegin" => Ok(EventType::BrowsingContextDownloadWillBegin),
+            "browsingContext.downloadEnd" => Ok(EventType::BrowsingContextDownloadEnd),
             "browsingContext.navigationAborted" => Ok(EventType::BrowsingContextNavigationAborted),
             "browsingContext.navigationCommitted" => {
                 Ok(EventType::BrowsingContextNavigationCommitted)

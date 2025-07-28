@@ -168,6 +168,7 @@ async fn main() -> Result<()> {
 - [x] browsingContext.domContentLoaded
 - [x] browsingContext.load
 - [x] browsingContext.downloadWillBegin
+- [x] browsingContext.downloadEnd
 - [x] browsingContext.navigationAborted
 - [x] browsingContext.navigationCommitted
 - [x] browsingContext.navigationFailed
