@@ -178,6 +178,9 @@ async fn main() -> Result<()> {
 ### emulation
 #### Commands
 - [x] emulation.setGeolocationOverride
+- [x] emulation.setLocaleOverride
+- [x] emulation.setScreenOrientationOverride
+- [x] emulation.setTimezoneOverride
 
 ### network
 #### Types

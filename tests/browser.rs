@@ -8,8 +8,8 @@ use webdriverbidi::model::browser::{CreateUserContextParameters, RemoveUserConte
 use webdriverbidi::model::browsing_context::{
     ActivateParameters, CloseParameters, GetTreeParameters,
 };
-use webdriverbidi::model::session::SubscriptionRequest;
 use webdriverbidi::model::common::EmptyParams;
+use webdriverbidi::model::session::SubscriptionRequest;
 
 mod utils;
 
@@ -21,7 +21,7 @@ mod create_user_context {
 
     async fn create_context_with_accept_insecure_certs(accept_insecure_certs: bool) -> Result<()> {
         let mut bidi_session = utils::session::init().await?;
-    
+
         let user_context = bidi_session
             .browser_create_user_context(CreateUserContextParameters::new(
                 Some(accept_insecure_certs),
@@ -31,7 +31,7 @@ mod create_user_context {
             .await?
             .user_context;
         let ids = utils::browser::get_user_context_ids(&mut bidi_session).await?;
-    
+
         utils::session::close(&mut bidi_session).await?;
 
         assert!(ids.contains(&user_context));
@@ -49,106 +49,106 @@ mod create_user_context {
         create_context_with_accept_insecure_certs(false).await
     }
 
-//     const TEST_STORAGE_ISOLATION_HTML: &str = "test_storage_isolation.html";
+    //     const TEST_STORAGE_ISOLATION_HTML: &str = "test_storage_isolation.html";
 
-//     #[tokio::test]
-//     async fn test_create_context() -> Result<()> {
-//         let mut bidi_session = utils::session::init().await?;
+    //     #[tokio::test]
+    //     async fn test_create_context() -> Result<()> {
+    //         let mut bidi_session = utils::session::init().await?;
 
-//         let user_context = utils::browser::create_user_context(&mut bidi_session).await?;
-//         let ids = utils::browser::get_user_context_ids(&mut bidi_session).await?;
+    //         let user_context = utils::browser::create_user_context(&mut bidi_session).await?;
+    //         let ids = utils::browser::get_user_context_ids(&mut bidi_session).await?;
 
-//         utils::session::close(&mut bidi_session).await?;
+    //         utils::session::close(&mut bidi_session).await?;
 
-//         assert!(ids.contains(&user_context));
+    //         assert!(ids.contains(&user_context));
 
-//         Ok(())
-//     }
+    //         Ok(())
+    //     }
 
-//     #[tokio::test]
-//     async fn test_unique_id() -> Result<()> {
-//         let mut bidi_session = utils::session::init().await?;
+    //     #[tokio::test]
+    //     async fn test_unique_id() -> Result<()> {
+    //         let mut bidi_session = utils::session::init().await?;
 
-//         let first_context = utils::browser::create_user_context(&mut bidi_session).await?;
-//         let second_context = utils::browser::create_user_context(&mut bidi_session).await?;
-//         let ids = utils::browser::get_user_context_ids(&mut bidi_session).await?;
+    //         let first_context = utils::browser::create_user_context(&mut bidi_session).await?;
+    //         let second_context = utils::browser::create_user_context(&mut bidi_session).await?;
+    //         let ids = utils::browser::get_user_context_ids(&mut bidi_session).await?;
 
-//         utils::session::close(&mut bidi_session).await?;
+    //         utils::session::close(&mut bidi_session).await?;
 
-//         assert!(ids.contains(&first_context));
-//         assert!(ids.contains(&second_context));
-//         assert_ne!(first_context, second_context);
+    //         assert!(ids.contains(&first_context));
+    //         assert!(ids.contains(&second_context));
+    //         assert_ne!(first_context, second_context);
 
-//         Ok(())
-//     }
+    //         Ok(())
+    //     }
 
-//     #[tokio::test]
-//     async fn test_storage_isolation() -> Result<()> {
-//         let (url, server_handle) =
-//             utils::axum_utils::serve_static(TEST_STORAGE_ISOLATION_HTML).await?;
+    //     #[tokio::test]
+    //     async fn test_storage_isolation() -> Result<()> {
+    //         let (url, server_handle) =
+    //             utils::axum_utils::serve_static(TEST_STORAGE_ISOLATION_HTML).await?;
 
-//         let mut bidi_session = utils::session::init().await?;
+    //         let mut bidi_session = utils::session::init().await?;
 
-//         let first_context = utils::browser::create_user_context(&mut bidi_session).await?;
-//         let second_context = utils::browser::create_user_context(&mut bidi_session).await?;
+    //         let first_context = utils::browser::create_user_context(&mut bidi_session).await?;
+    //         let second_context = utils::browser::create_user_context(&mut bidi_session).await?;
 
-//         let tab_first_context =
-//             utils::browsing_context::new_tab_in_user_context(&mut bidi_session, first_context)
-//                 .await?;
-//         let tab_second_context =
-//             utils::browsing_context::new_tab_in_user_context(&mut bidi_session, second_context)
-//                 .await?;
+    //         let tab_first_context =
+    //             utils::browsing_context::new_tab_in_user_context(&mut bidi_session, first_context)
+    //                 .await?;
+    //         let tab_second_context =
+    //             utils::browsing_context::new_tab_in_user_context(&mut bidi_session, second_context)
+    //                 .await?;
 
-//         utils::browsing_context::navigate(
-//             &mut bidi_session,
-//             tab_first_context.clone(),
-//             url.clone(),
-//         )
-//         .await?;
+    //         utils::browsing_context::navigate(
+    //             &mut bidi_session,
+    //             tab_first_context.clone(),
+    //             url.clone(),
+    //         )
+    //         .await?;
 
-//         utils::browsing_context::navigate(&mut bidi_session, tab_second_context.clone(), url)
-//             .await?;
+    //         utils::browsing_context::navigate(&mut bidi_session, tab_second_context.clone(), url)
+    //             .await?;
 
-//         let test_key = "test";
-//         let test_value = "value";
+    //         let test_key = "test";
+    //         let test_value = "value";
 
-//         let initial_tab_first_context_storage =
-//             utils::local_storage::get(&mut bidi_session, tab_first_context.as_str(), test_key)
-//                 .await?;
+    //         let initial_tab_first_context_storage =
+    //             utils::local_storage::get(&mut bidi_session, tab_first_context.as_str(), test_key)
+    //                 .await?;
 
-//         let initial_tab_second_context_storage =
-//             utils::local_storage::get(&mut bidi_session, tab_second_context.as_str(), test_key)
-//                 .await?;
+    //         let initial_tab_second_context_storage =
+    //             utils::local_storage::get(&mut bidi_session, tab_second_context.as_str(), test_key)
+    //                 .await?;
 
-//         utils::local_storage::set(
-//             &mut bidi_session,
-//             tab_first_context.as_str(),
-//             test_key,
-//             test_value,
-//         )
-//         .await?;
+    //         utils::local_storage::set(
+    //             &mut bidi_session,
+    //             tab_first_context.as_str(),
+    //             test_key,
+    //             test_value,
+    //         )
+    //         .await?;
 
-//         let final_tab_first_context_storage =
-//             utils::local_storage::get(&mut bidi_session, tab_first_context.as_str(), test_key)
-//                 .await?;
+    //         let final_tab_first_context_storage =
+    //             utils::local_storage::get(&mut bidi_session, tab_first_context.as_str(), test_key)
+    //                 .await?;
 
-//         let final_tab_second_context_storage =
-//             utils::local_storage::get(&mut bidi_session, tab_second_context.as_str(), test_key)
-//                 .await?;
+    //         let final_tab_second_context_storage =
+    //             utils::local_storage::get(&mut bidi_session, tab_second_context.as_str(), test_key)
+    //                 .await?;
 
-//         utils::session::close(&mut bidi_session).await?;
-//         server_handle.abort();
+    //         utils::session::close(&mut bidi_session).await?;
+    //         server_handle.abort();
 
-//         assert_eq!(initial_tab_first_context_storage, None);
-//         assert_eq!(initial_tab_second_context_storage, None);
-//         assert_eq!(
-//             final_tab_first_context_storage,
-//             Some(test_value.to_string())
-//         );
-//         assert_eq!(final_tab_second_context_storage, None);
+    //         assert_eq!(initial_tab_first_context_storage, None);
+    //         assert_eq!(initial_tab_second_context_storage, None);
+    //         assert_eq!(
+    //             final_tab_first_context_storage,
+    //             Some(test_value.to_string())
+    //         );
+    //         assert_eq!(final_tab_second_context_storage, None);
 
-//         Ok(())
-//     }
+    //         Ok(())
+    //     }
 }
 
 // // --------------------------------------------------

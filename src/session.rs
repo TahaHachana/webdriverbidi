@@ -642,6 +642,60 @@ impl WebDriverBiDiSession {
     ) -> Result<EmptyResult, CommandError> {
         commands::emulation::set_geolocation_override(self, params).await
     }
+
+    // https://w3c.github.io/webdriver-bidi/#command-emulation-setLocaleOverride
+
+    /// Modifies locale on the given top-level traversables or user contexts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetLocaleOverrideParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn set_locale_override(
+        &mut self,
+        params: SetLocaleOverrideParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::emulation::set_locale_override(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-emulation-setScreenOrientationOverride
+
+    /// Emulates screen orientation of the given top-level traversables or user contexts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetScreenOrientationOverrideParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn set_screen_orientation_override(
+        &mut self,
+        params: SetScreenOrientationOverrideParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::emulation::set_screen_orientation_override(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-emulation-setTimezoneOverride
+
+    /// Modifies timezone on the given top-level traversables or user contexts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetTimezoneOverrideParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn set_timezone_override(
+        &mut self,
+        params: SetTimezoneOverrideParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::emulation::set_timezone_override(self, params).await
+    }
 }
 
 // Network commands

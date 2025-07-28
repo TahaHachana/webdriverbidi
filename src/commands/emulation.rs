@@ -17,3 +17,30 @@ define_command!(
     set_geolocation_override,
     EmptyResult
 );
+
+// https://w3c.github.io/webdriver-bidi/#command-emulation-setLocaleOverride
+define_command!(
+    SetLocaleOverrideCommand,
+    SetLocaleOverride,
+    SetLocaleOverrideParameters,
+    set_locale_override,
+    EmptyResult
+);
+
+// https://w3c.github.io/webdriver-bidi/#command-emulation-setScreenOrientationOverride
+define_command!(
+    SetScreenOrientationOverrideCommand,
+    SetScreenOrientationOverride,
+    SetScreenOrientationOverrideParameters,
+    set_screen_orientation_override,
+    EmptyResult
+);
+
+// https://w3c.github.io/webdriver-bidi/#command-emulation-setTimezoneOverride
+define_command!(
+    SetTimezoneOverrideCommand,
+    SetTimezoneOverride,
+    SetTimezoneOverrideParameters,
+    set_timezone_override,
+    EmptyResult
+);

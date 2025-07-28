@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::model::browsing_context::{BrowsingContext, Navigation};
 use crate::model::browser::UserContext;
+use crate::model::browsing_context::{BrowsingContext, Navigation};
 use crate::model::common::{Extensible, JsInt, JsUint};
 use crate::model::script::StackTrace;
 
@@ -357,7 +357,11 @@ pub struct AddDataCollectorParameters {
     pub data_types: Vec<DataType>,
     #[serde(rename = "maxEncodedDataSize")]
     pub max_encoded_data_size: JsUint,
-    #[serde(rename = "collectorType", default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "collectorType",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub collector_type: Option<CollectorType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub contexts: Option<Vec<BrowsingContext>>,
@@ -369,8 +373,6 @@ pub struct AddDataCollectorParameters {
 pub struct AddDataCollectorResult {
     pub collector: Collector,
 }
-
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AddIntercept {

@@ -1,7 +1,10 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{commands::session, model::common::{EmptyParams, JsInt, JsUint}};
 use crate::model::session::{ProxyConfiguration, UserPromptHandler};
+use crate::{
+    commands::session,
+    model::common::{EmptyParams, JsInt, JsUint},
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -106,11 +109,17 @@ impl CreateUserContext {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUserContextParameters {
-    #[serde(rename = "acceptInsecureCerts", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "acceptInsecureCerts",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub accept_insecure_certs: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub proxy: Option<ProxyConfiguration>,
-    #[serde(rename = "unhandledPromptBehavior", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "unhandledPromptBehavior",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub unhandled_prompt_behavior: Option<UserPromptHandler>,
 }
 

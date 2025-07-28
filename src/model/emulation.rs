@@ -27,7 +27,6 @@ impl SetGeolocationOverride {
     }
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum SetGeolocationOverrideParameters {
@@ -132,6 +131,14 @@ pub struct SetLocaleOverride {
     pub params: SetLocaleOverrideParameters,
 }
 
+impl SetLocaleOverride {
+    pub fn new(params: SetLocaleOverrideParameters) -> Self {
+        Self {
+            method: "emulation.setLocaleOverride".to_string(),
+            params,
+        }
+    }
+}
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SetLocaleOverrideParameters {
     pub locale: Option<String>,
@@ -147,12 +154,21 @@ pub struct SetScreenOrientationOverride {
     pub params: SetScreenOrientationOverrideParameters,
 }
 
+impl SetScreenOrientationOverride {
+    pub fn new(params: SetScreenOrientationOverrideParameters) -> Self {
+        Self {
+            method: "emulation.setScreenOrientationOverride".to_string(),
+            params,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase", untagged)]
 pub enum ScreenOrientationNatural {
     Portrait,
     Landscape,
-} 
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case", untagged)]
@@ -184,6 +200,15 @@ pub struct SetScreenOrientationOverrideParameters {
 pub struct SetTimezoneOverride {
     pub method: String,
     pub params: SetTimezoneOverrideParameters,
+}
+
+impl SetTimezoneOverride {
+    pub fn new(params: SetTimezoneOverrideParameters) -> Self {
+        Self {
+            method: "emulation.setTimezoneOverride".to_string(),
+            params,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
