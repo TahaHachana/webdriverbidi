@@ -351,6 +351,15 @@ pub struct AddDataCollector {
     pub params: AddDataCollectorParameters,
 }
 
+impl AddDataCollector {
+    pub fn new(params: AddDataCollectorParameters) -> Self {
+        Self {
+            method: "network.addDataCollector".to_string(),
+            params,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AddDataCollectorParameters {
     #[serde(rename = "dataTypes")]
@@ -604,6 +613,15 @@ pub struct DisownData {
     pub params: DisownDataParameters,
 }
 
+impl DisownData {
+    pub fn new(params: DisownDataParameters) -> Self {
+        Self {
+            method: "network.disownData".to_string(),
+            params,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DisownDataParameters {
     #[serde(rename = "dataType")]
@@ -642,6 +660,15 @@ impl FailRequestParameters {
 pub struct GetData {
     pub method: String,
     pub params: GetDataParameters,
+}
+
+impl GetData {
+    pub fn new(params: GetDataParameters) -> Self {
+        Self {
+            method: "network.getData".to_string(),
+            params,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -710,15 +737,19 @@ impl ProvideResponseParameters {
     }
 }
 
-// network.RemoveDataCollector = (
-//   method: "network.removeDataCollector",
-//   params: network.RemoveDataCollectorParameters
-// )
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RemoveDataCollector {
     pub method: String,
     pub params: RemoveDataCollectorParameters,
+}
+
+impl RemoveDataCollector {
+    pub fn new(params: RemoveDataCollectorParameters) -> Self {
+        Self {
+            method: "network.removeDataCollector".to_string(),
+            params,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -855,4 +886,28 @@ pub struct ResponseStartedParameters {
     #[serde(flatten)]
     pub base: BaseParameters,
     pub response: ResponseData,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SetExtraHeaders {
+    pub method: String,
+    pub params: SetExtraHeadersParameters,
+}
+
+impl SetExtraHeaders {
+    pub fn new(params: SetExtraHeadersParameters) -> Self {
+        Self {
+            method: "network.setExtraHeaders".to_string(),
+            params,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SetExtraHeadersParameters {
+    pub headers: Vec<Header>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contexts: Option<Vec<BrowsingContext>>,
+    #[serde(rename = "userContexts", skip_serializing_if = "Option::is_none")]
+    pub user_contexts: Option<Vec<UserContext>>,
 }

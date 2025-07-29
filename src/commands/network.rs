@@ -8,6 +8,15 @@ use crate::model::network::*;
 use crate::model::result::EmptyResult;
 use crate::session::WebDriverBiDiSession;
 
+// https://w3c.github.io/webdriver-bidi/#command-network-addDataCollector
+define_command!(
+    AddDataCollectorCommand,
+    AddDataCollector,
+    AddDataCollectorParameters,
+    add_data_collector,
+    AddDataCollectorResult
+);
+
 // https://w3c.github.io/webdriver-bidi/#command-network-addIntercept
 define_command!(
     AddInterceptCommand,
@@ -44,6 +53,15 @@ define_command!(
     EmptyResult
 );
 
+// https://w3c.github.io/webdriver-bidi/#command-network-disownData
+define_command!(
+    DisownDataCommand,
+    DisownData,
+    DisownDataParameters,
+    disown_data,
+    EmptyResult
+);
+
 // https://w3c.github.io/webdriver-bidi/#command-network-failRequest
 define_command!(
     FailRequestCommand,
@@ -53,12 +71,30 @@ define_command!(
     EmptyResult
 );
 
+// https://w3c.github.io/webdriver-bidi/#command-network-getData
+define_command!(
+    GetDataCommand,
+    GetData,
+    GetDataParameters,
+    get_data,
+    GetDataResult
+);
+
 // https://w3c.github.io/webdriver-bidi/#command-network-provideResponse
 define_command!(
     ProvideResponseCommand,
     ProvideResponse,
     ProvideResponseParameters,
     provide_response,
+    EmptyResult
+);
+
+// https://w3c.github.io/webdriver-bidi/#command-network-removeDataCollector
+define_command!(
+    RemoveDataCollectorCommand,
+    RemoveDataCollector,
+    RemoveDataCollectorParameters,
+    remove_data_collector,
     EmptyResult
 );
 
@@ -77,5 +113,14 @@ define_command!(
     SetCacheBehavior,
     SetCacheBehaviorParameters,
     set_cache_behavior,
+    EmptyResult
+);
+
+// https://w3c.github.io/webdriver-bidi/#command-network-setExtraHeaders
+define_command!(
+    SetExtraHeadersCommand,
+    SetExtraHeaders,
+    SetExtraHeadersParameters,
+    set_extra_headers,
     EmptyResult
 );

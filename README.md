@@ -23,7 +23,7 @@ Add the following to your `Cargo.toml` (the example below will also require toki
 
 ```toml
 [dependencies]
-webdriverbidi = "0.2.0"
+webdriverbidi = "0.2.2"
 ```
 
 ### Usage
@@ -188,8 +188,11 @@ async fn main() -> Result<()> {
 - [x] network.AuthCredentials
 - [x] network.BaseParameters
 - [x] network.BytesValue
+- [x] network.Collector
+- [x] network.CollectorType
 - [x] network.Cookie
 - [x] network.CookieHeader
+- [x] network.DataType
 - [x] network.FetchTimingInfo
 - [x] network.Header
 - [x] network.Initiator
@@ -202,14 +205,19 @@ async fn main() -> Result<()> {
 - [x] network.UrlPattern
 
 #### Commands
+- [x] network.addDataCollector
 - [x] network.addIntercept
 - [x] network.continueRequest
 - [x] network.continueResponse
 - [x] network.continueWithAuth
+- [x] The network.disownData
 - [x] network.failRequest
+- [x] network.getData
 - [x] network.provideResponse
+- [x] network.removeDataCollector
 - [x] network.removeIntercept
 - [x] network.setCacheBehavior
+- [x] network.setExtraHeaders
 
 #### Events
 - [x] network.authRequired

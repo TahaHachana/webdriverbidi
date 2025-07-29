@@ -700,6 +700,24 @@ impl WebDriverBiDiSession {
 
 // Network commands
 impl WebDriverBiDiSession {
+    // https://w3c.github.io/webdriver-bidi/#command-network-addDataCollector
+
+    /// Add a data collector.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as an `AddDataCollectorParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `AddDataCollectorResult` or a `CommandError`.
+    pub async fn network_add_data_collector(
+        &mut self,
+        params: AddDataCollectorParameters,
+    ) -> Result<AddDataCollectorResult, CommandError> {
+        commands::network::add_data_collector(self, params).await
+    }
+
     // https://w3c.github.io/webdriver-bidi/#command-network-addIntercept
 
     /// Add a network intercept.
@@ -772,6 +790,24 @@ impl WebDriverBiDiSession {
         commands::network::continue_with_auth(self, params).await
     }
 
+    // https://w3c.github.io/webdriver-bidi/#command-network-disownData
+
+    /// Release a collected network data for a given collector.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `DisownDataParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn network_disown_data(
+        &mut self,
+        params: DisownDataParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::network::disown_data(self, params).await
+    }
+
     // https://w3c.github.io/webdriver-bidi/#command-network-failRequest
 
     /// Fail a fetch that’s blocked by a network intercept.
@@ -790,6 +826,24 @@ impl WebDriverBiDiSession {
         commands::network::fail_request(self, params).await
     }
 
+    // https://w3c.github.io/webdriver-bidi/#command-network-getData
+
+    /// Retrieve a network data if it is available.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `GetDataParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `GetDataResult` or a `CommandError`.
+    pub async fn network_get_data(
+        &mut self,
+        params: GetDataParameters,
+    ) -> Result<GetDataResult, CommandError> {
+        commands::network::get_data(self, params).await
+    }
+
     // https://w3c.github.io/webdriver-bidi/#command-network-provideResponse
 
     /// Continue a request that’s blocked by a network intercept, by providing a complete response.
@@ -806,6 +860,24 @@ impl WebDriverBiDiSession {
         params: ProvideResponseParameters,
     ) -> Result<EmptyResult, CommandError> {
         commands::network::provide_response(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-network-removeDataCollector
+
+    /// Remove a data collector.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as an `RemoveDataCollectorParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn network_remove_data_collector(
+        &mut self,
+        params: RemoveDataCollectorParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::network::remove_data_collector(self, params).await
     }
 
     // https://w3c.github.io/webdriver-bidi/#command-network-removeIntercept
@@ -842,6 +914,24 @@ impl WebDriverBiDiSession {
         params: SetCacheBehaviorParameters,
     ) -> Result<EmptyResult, CommandError> {
         commands::network::set_cache_behavior(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-network-setExtraHeaders
+
+    /// Allow specifying headers that will extend, or overwrite, existing request headers.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetExtraHeadersParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn network_set_extra_headers(
+        &mut self,
+        params: SetExtraHeadersParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::network::set_extra_headers(self, params).await
     }
 }
 
