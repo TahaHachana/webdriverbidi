@@ -14,6 +14,7 @@ use webdriverbidi::model::browser::*;
 use webdriverbidi::model::browsing_context::*;
 use webdriverbidi::model::common::{EmptyParams, Extensible};
 use webdriverbidi::model::emulation::*;
+use webdriverbidi::model::error::ErrorCode;
 use webdriverbidi::model::input::*;
 use webdriverbidi::model::network::*;
 use webdriverbidi::model::script::*;
@@ -23,7 +24,7 @@ use webdriverbidi::model::session::{
 use webdriverbidi::model::storage::*;
 use webdriverbidi::model::web_extension::*;
 
-use support::{error_code, inline, navigate, top_context, with_session};
+use support::{inline, navigate, top_context, with_session};
 
 const MISSING: &str = "nonexistent-id";
 
@@ -45,8 +46,12 @@ impl Expectations {
             Ok(value) => self.failures.push(format!(
                 "{what}: succeeded with {value:?}, expected `{expected}`"
             )),
-            Err(e) => match error_code(&e) {
-                Some(code) if code == expected => {}
+            // The crate's typed accessor, so this also tests `CommandError::error_code`.
+            Err(e) => match e.error_code() {
+                Some(ErrorCode::Other(code)) => self.deviations.push(format!(
+                    "{what}: browser answered `{code}`, which isn't a spec error code"
+                )),
+                Some(code) if code.as_str() == expected => {}
                 Some(code) => self.deviations.push(format!(
                     "{what}: browser answered `{code}`, spec says `{expected}`"
                 )),
