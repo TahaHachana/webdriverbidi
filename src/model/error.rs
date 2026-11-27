@@ -68,6 +68,8 @@ pub enum ErrorCode {
     NoSuchNode,
     #[serde(rename = "no such request")]
     NoSuchRequest,
+    #[serde(rename = "no such screencast")]
+    NoSuchScreencast,
     #[serde(rename = "no such script")]
     NoSuchScript,
     #[serde(rename = "no such storage partition")]

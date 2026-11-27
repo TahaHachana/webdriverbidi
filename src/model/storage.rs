@@ -26,6 +26,7 @@ pub struct PartitionKey {
     pub user_context: Option<String>,
     #[serde(rename = "sourceOrigin", skip_serializing_if = "Option::is_none")]
     pub source_origin: Option<String>,
+    #[serde(flatten, default)]
     pub extensible: Extensible,
 }
 
@@ -74,6 +75,7 @@ pub struct CookieFilter {
     pub same_site: Option<SameSite>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expiry: Option<JsUint>,
+    #[serde(flatten, default)]
     pub extensible: Extensible,
 }
 
@@ -129,6 +131,7 @@ pub struct StorageKeyPartitionDescriptor {
     pub user_context: Option<String>,
     #[serde(rename = "sourceOrigin", skip_serializing_if = "Option::is_none")]
     pub source_origin: Option<String>,
+    #[serde(flatten, default)]
     pub extensible: Extensible,
 }
 
@@ -201,6 +204,7 @@ pub struct PartialCookie {
     pub same_site: Option<SameSite>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expiry: Option<JsUint>,
+    #[serde(flatten, default)]
     pub extensible: Extensible,
 }
 

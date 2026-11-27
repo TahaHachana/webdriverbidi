@@ -15,13 +15,16 @@ pub enum BrowserCommand {
     GetUserContexts(GetUserContexts),
     RemoveUserContext(RemoveUserContext),
     SetClientWindowState(SetClientWindowState),
+    SetDownloadBehavior(SetDownloadBehavior),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
 pub enum BrowserResult {
     CreateUserContextResult(CreateUserContextResult),
+    GetClientWindowsResult(GetClientWindowsResult),
     GetUserContextsResult(GetUserContextsResult),
+    SetClientWindowStateResult(SetClientWindowStateResult),
 }
 
 pub type ClientWindow = String;
@@ -227,7 +230,8 @@ impl SetClientWindowState {
 pub struct SetClientWindowStateParameters {
     #[serde(rename = "clientWindow")]
     pub client_window: ClientWindow,
-    #[serde(rename = "clientWindowNamedState")]
+    /// Flattened into the parameters: the spec has no wrapper key here.
+    #[serde(flatten)]
     pub client_window_named_state: ClientWindowNamedOrRectState,
 }
 
@@ -289,5 +293,88 @@ impl ClientWindowRectState {
             x,
             y,
         }
+    }
+}
+
+pub type SetClientWindowStateResult = ClientWindowInfo;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SetDownloadBehavior {
+    pub method: String,
+    pub params: SetDownloadBehaviorParameters,
+}
+
+impl SetDownloadBehavior {
+    pub fn new(params: SetDownloadBehaviorParameters) -> Self {
+        Self {
+            method: "browser.setDownloadBehavior".to_string(),
+            params,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SetDownloadBehaviorParameters {
+    /// `None` resets the download behavior to the default.
+    #[serde(rename = "downloadBehavior")]
+    pub download_behavior: Option<DownloadBehavior>,
+    #[serde(rename = "userContexts", skip_serializing_if = "Option::is_none")]
+    pub user_contexts: Option<Vec<UserContext>>,
+}
+
+impl SetDownloadBehaviorParameters {
+    pub fn new(
+        download_behavior: Option<DownloadBehavior>,
+        user_contexts: Option<Vec<UserContext>>,
+    ) -> Self {
+        Self {
+            download_behavior,
+            user_contexts,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "type", rename_all = "lowercase")]
+pub enum DownloadBehavior {
+    Allowed {
+        #[serde(rename = "destinationFolder")]
+        destination_folder: String,
+    },
+    Denied,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn download_behavior_serialization() {
+        let allowed = SetDownloadBehaviorParameters::new(
+            Some(DownloadBehavior::Allowed {
+                destination_folder: "/tmp".into(),
+            }),
+            None,
+        );
+        assert_eq!(
+            serde_json::to_value(&allowed).unwrap(),
+            json!({"downloadBehavior": {"type": "allowed", "destinationFolder": "/tmp"}})
+        );
+
+        let denied = SetDownloadBehaviorParameters::new(
+            Some(DownloadBehavior::Denied),
+            Some(vec!["u".into()]),
+        );
+        assert_eq!(
+            serde_json::to_value(&denied).unwrap(),
+            json!({"downloadBehavior": {"type": "denied"}, "userContexts": ["u"]})
+        );
+
+        let reset = SetDownloadBehaviorParameters::new(None, None);
+        assert_eq!(
+            serde_json::to_value(&reset).unwrap(),
+            json!({"downloadBehavior": null})
+        );
     }
 }

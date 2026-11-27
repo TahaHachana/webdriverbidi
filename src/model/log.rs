@@ -21,9 +21,10 @@ pub enum Level {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
 pub enum Entry {
-    GenericLogEntry(GenericLogEntry),
+    // Order matters: `GenericLogEntry` accepts any `type`, so it must come last.
     ConsoleLogEntry(ConsoleLogEntry),
     JavascriptLogEntry(JavascriptLogEntry),
+    GenericLogEntry(GenericLogEntry),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -48,7 +49,10 @@ pub struct GenericLogEntry {
 pub struct ConsoleLogEntry {
     #[serde(flatten)]
     pub base: BaseLogEntry,
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::console"
+    )]
     pub log_type: String,
     pub method: String,
     pub args: Vec<RemoteValue>,
@@ -58,7 +62,10 @@ pub struct ConsoleLogEntry {
 pub struct JavascriptLogEntry {
     #[serde(flatten)]
     pub base: BaseLogEntry,
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::javascript"
+    )]
     pub log_type: String,
 }
 

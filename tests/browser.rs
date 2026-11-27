@@ -9,7 +9,7 @@ use webdriverbidi::model::browsing_context::{
     ActivateParameters, CloseParameters, GetTreeParameters,
 };
 use webdriverbidi::model::common::EmptyParams;
-use webdriverbidi::model::session::SubscriptionRequest;
+use webdriverbidi::model::session::SubscribeParameters;
 
 mod utils;
 
@@ -363,7 +363,7 @@ mod create_user_context {
 //         }
 
 //         bidi_session
-//             .session_subscribe(SubscriptionRequest::new(
+//             .session_subscribe(SubscribeParameters::new(
 //                 vec![String::from(BROWSING_CTX_DESTROYED_EVENT)],
 //                 None,
 //                 None,
@@ -443,7 +443,7 @@ mod create_user_context {
 //         let mut bidi_session = utils::session::init().await?;
 
 //         bidi_session
-//             .session_subscribe(SubscriptionRequest::new(
+//             .session_subscribe(SubscribeParameters::new(
 //                 vec![String::from(USER_PROMPT_OPENED_EVENT)],
 //                 None,
 //                 None,

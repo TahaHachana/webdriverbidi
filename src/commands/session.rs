@@ -23,7 +23,7 @@ define_command!(EndCommand, End, EmptyParams, end, EmptyResult);
 define_command!(
     SubscribeCommand,
     Subscribe,
-    SubscriptionRequest,
+    SubscribeParameters,
     subscribe,
     SubscribeResult
 );

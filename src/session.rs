@@ -25,7 +25,6 @@ use crate::model::emulation::*;
 use crate::model::input::*;
 use crate::model::network::*;
 use crate::model::result::EmptyResult;
-use crate::model::script::EvaluateResult;
 use crate::model::script::*;
 use crate::model::session::*;
 use crate::model::storage::*;
@@ -424,6 +423,60 @@ impl WebDriverBiDiSession {
     ) -> Result<TraverseHistoryResult, CommandError> {
         commands::browsing_context::traverse_history(self, params).await
     }
+
+    // https://w3c.github.io/webdriver-bidi/#command-browsingContext-setBypassCSP
+
+    /// Enable or disable bypassing Content Security Policy for the given navigables or user contexts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetBypassCSPParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn browsing_context_set_bypass_csp(
+        &mut self,
+        params: SetBypassCSPParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::browsing_context::set_bypass_csp(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-browsingContext-startScreencast
+
+    /// Start recording a screencast of the given navigable.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `StartScreencastParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `StartScreencastResult` or a `CommandError`.
+    pub async fn browsing_context_start_screencast(
+        &mut self,
+        params: StartScreencastParameters,
+    ) -> Result<StartScreencastResult, CommandError> {
+        commands::browsing_context::start_screencast(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-browsingContext-stopScreencast
+
+    /// Stop a screencast started with `browsingContext.startScreencast`.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `StopScreencastParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `StopScreencastResult` or a `CommandError`.
+    pub async fn browsing_context_stop_screencast(
+        &mut self,
+        params: StopScreencastParameters,
+    ) -> Result<StopScreencastResult, CommandError> {
+        commands::browsing_context::stop_screencast(self, params).await
+    }
 }
 
 // Session commands
@@ -480,14 +533,14 @@ impl WebDriverBiDiSession {
     ///
     /// # Arguments
     ///
-    /// * `params` - The parameters as a `SubscriptionRequest` instance.
+    /// * `params` - The parameters as a `SubscribeParameters` instance.
     ///
     /// # Returns
     ///
-    /// A result containing the `SubscriptionRequestResult` or a `CommandError`.
+    /// A result containing the `SubscribeResult` or a `CommandError`.
     pub async fn session_subscribe(
         &mut self,
-        params: SubscriptionRequest,
+        params: SubscribeParameters,
     ) -> Result<SubscribeResult, CommandError> {
         commands::session::subscribe(self, params).await
     }
@@ -621,6 +674,24 @@ impl WebDriverBiDiSession {
     ) -> Result<ClientWindowInfo, CommandError> {
         commands::browser::set_client_window_state(self, params).await
     }
+
+    // https://w3c.github.io/webdriver-bidi/#command-browser-setDownloadBehavior
+
+    /// Set the download behavior for the given user contexts, or globally.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetDownloadBehaviorParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn browser_set_download_behavior(
+        &mut self,
+        params: SetDownloadBehaviorParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::browser::set_download_behavior(self, params).await
+    }
 }
 
 // Emulation commands
@@ -695,6 +766,186 @@ impl WebDriverBiDiSession {
         params: SetTimezoneOverrideParameters,
     ) -> Result<EmptyResult, CommandError> {
         commands::emulation::set_timezone_override(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-emulation-setForcedColorsModeThemeOverride
+
+    /// Emulate the forced colors mode theme on the given navigables or user contexts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetForcedColorsModeThemeOverrideParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn set_forced_colors_mode_theme_override(
+        &mut self,
+        params: SetForcedColorsModeThemeOverrideParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::emulation::set_forced_colors_mode_theme_override(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-emulation-setMediaFeaturesOverride
+
+    /// Override CSS media features on the given navigables or user contexts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetMediaFeaturesOverrideParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn set_media_features_override(
+        &mut self,
+        params: SetMediaFeaturesOverrideParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::emulation::set_media_features_override(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-emulation-setNetworkConditions
+
+    /// Emulate network conditions (e.g. offline) on the given navigables or user contexts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetNetworkConditionsParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn set_network_conditions(
+        &mut self,
+        params: SetNetworkConditionsParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::emulation::set_network_conditions(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-emulation-setScreenSettingsOverride
+
+    /// Override the screen area on the given navigables or user contexts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetScreenSettingsOverrideParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn set_screen_settings_override(
+        &mut self,
+        params: SetScreenSettingsOverrideParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::emulation::set_screen_settings_override(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-emulation-setScriptingEnabled
+
+    /// Disable (or restore) script execution on the given navigables or user contexts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetScriptingEnabledParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn set_scripting_enabled(
+        &mut self,
+        params: SetScriptingEnabledParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::emulation::set_scripting_enabled(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-emulation-setScrollbarTypeOverride
+
+    /// Override the scrollbar type on the given navigables or user contexts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetScrollbarTypeOverrideParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn set_scrollbar_type_override(
+        &mut self,
+        params: SetScrollbarTypeOverrideParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::emulation::set_scrollbar_type_override(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-emulation-setTextLayoutModeOverride
+
+    /// Override the text layout mode on the given navigables or user contexts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetTextLayoutModeOverrideParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn set_text_layout_mode_override(
+        &mut self,
+        params: SetTextLayoutModeOverrideParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::emulation::set_text_layout_mode_override(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-emulation-setTouchOverride
+
+    /// Emulate touch support (maximum touch points) on the given navigables or user contexts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetTouchOverrideParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn set_touch_override(
+        &mut self,
+        params: SetTouchOverrideParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::emulation::set_touch_override(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-emulation-setUserAgentOverride
+
+    /// Override the user agent string on the given navigables or user contexts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetUserAgentOverrideParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn set_user_agent_override(
+        &mut self,
+        params: SetUserAgentOverrideParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::emulation::set_user_agent_override(self, params).await
+    }
+
+    // https://w3c.github.io/webdriver-bidi/#command-emulation-setViewportMetaOverride
+
+    /// Enable `<meta name=viewport>` handling on the given navigables or user contexts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The parameters as a `SetViewportMetaOverrideParameters` instance.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the `EmptyResult` or a `CommandError`.
+    pub async fn set_viewport_meta_override(
+        &mut self,
+        params: SetViewportMetaOverrideParameters,
+    ) -> Result<EmptyResult, CommandError> {
+        commands::emulation::set_viewport_meta_override(self, params).await
     }
 }
 

@@ -32,7 +32,7 @@ use webdriverbidi::model::script::{
     CallFunctionParameters, ContextTarget, LocalValue, PrimitiveProtocolValue, StringValue, Target,
 };
 use webdriverbidi::model::script::{
-    EvaluateResult,
+    EvaluationResult,
     RemoteValue, // NumberOrSpecialNumber, NumberValue
 };
 use webdriverbidi::session::WebDriverBiDiSession;
@@ -218,7 +218,7 @@ pub mod local_storage {
         let eval_result = bidi_session.script_call_function(params).await?;
 
         match eval_result {
-            EvaluateResult::EvaluateResultSuccess(eval_rslt_success) => {
+            EvaluationResult::EvaluationResultSuccess(eval_rslt_success) => {
                 let remote_value = eval_rslt_success.result;
                 match remote_value {
                     RemoteValue::PrimitiveProtocolValue(
@@ -544,7 +544,7 @@ pub async fn get_visibility_state(
     );
     let rslt = bidi_session.script_call_function(params).await?;
     match rslt {
-        EvaluateResult::EvaluateResultSuccess(eval_rslt_success) => {
+        EvaluationResult::EvaluationResultSuccess(eval_rslt_success) => {
             match eval_rslt_success.result {
                 RemoteValue::PrimitiveProtocolValue(
                     webdriverbidi::model::script::PrimitiveProtocolValue::StringValue(string_value),
@@ -598,7 +598,7 @@ pub async fn get_document_focus(
     );
     let rslt = bidi_session.script_call_function(params).await?;
     match rslt {
-        EvaluateResult::EvaluateResultSuccess(eval_rslt_success) => {
+        EvaluationResult::EvaluationResultSuccess(eval_rslt_success) => {
             match eval_rslt_success.result {
                 RemoteValue::PrimitiveProtocolValue(
                     webdriverbidi::model::script::PrimitiveProtocolValue::BooleanValue(bool_value),
@@ -644,7 +644,7 @@ pub async fn get_document_focus(
 //     let eval_result = bidi_session.script_call_function(params).await?;
 
 //     match eval_result {
-//         EvaluateResult::EvaluateResultSuccess(eval_rslt_success) => {
+//         EvaluationResult::EvaluationResultSuccess(eval_rslt_success) => {
 //             let remote_value = eval_rslt_success.result;
 //             match remote_value {
 //                 RemoteValue::PrimitiveProtocolValue(

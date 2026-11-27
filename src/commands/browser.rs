@@ -58,3 +58,12 @@ define_command!(
     set_client_window_state,
     ClientWindowInfo
 );
+
+// https://w3c.github.io/webdriver-bidi/#command-browser-setDownloadBehavior
+define_command!(
+    SetDownloadBehaviorCommand,
+    SetDownloadBehavior,
+    SetDownloadBehaviorParameters,
+    set_download_behavior,
+    EmptyResult
+);

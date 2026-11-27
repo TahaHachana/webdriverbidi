@@ -1,11 +1,17 @@
 [package]
 name = "webdriverbidi"
-version = "0.2.2"
+version = "0.3.0"
 edition = "2024"
 authors = ["Taha Hachana <tahahachana@gmail.com>"]
 description = "WebDriver BiDi client implementation in Rust."
 license = "MIT"
 repository = "https://github.com/TahaHachana/webdriverbidi"
+rust-version = "1.85"
+readme = "README.md"
+keywords = ["webdriver", "bidi", "browser", "automation", "testing"]
+categories = ["development-tools::testing", "web-programming", "asynchronous"]
+# Ship only what users need; tests, fixtures, scripts and notes stay in the repo.
+include = ["src/**/*.rs", "examples/**/*.rs", "README.md", "CHANGELOG.md", "LICENSE"]
 
 [dependencies]
 tokio = { version = "1.47.0", features = ["full"] }
@@ -28,3 +34,4 @@ url = "2.5.4"
 axum = "0.8.4"
 tower = { version = "0.5.2", features = ["util"] }
 tower-http = { version = "0.6.2", features = ["fs"] }
+cddl = "0.10.7"

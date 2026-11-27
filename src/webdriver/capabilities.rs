@@ -9,7 +9,7 @@ use serde_json::{Value, json};
 // with String keys and serde_json::Value values.
 pub type Extensible = HashMap<String, Value>;
 
-/// Standard WebDriver capabilities https://w3c.github.io/webdriver/#capabilities.
+/// Standard WebDriver capabilities: <https://w3c.github.io/webdriver/#capabilities>.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CapabilityRequest {
