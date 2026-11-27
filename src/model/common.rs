@@ -23,6 +23,13 @@ impl EmptyParams {
     }
 }
 
+/// Deserialize a `js-uint`, reading a negative integer as `0`, for fields where
+/// browsers send `-1` to mean "unknown".
+pub(crate) fn uint_or_zero<'de, D: serde::Deserializer<'de>>(d: D) -> Result<JsUint, D::Error> {
+    let value = <i128 as Deserialize>::deserialize(d)?;
+    JsUint::try_from(value.max(0)).map_err(serde::de::Error::custom)
+}
+
 /// Deserializers for `type`-style discriminator fields.
 ///
 /// The model represents many spec unions as `#[serde(untagged)]` enums whose

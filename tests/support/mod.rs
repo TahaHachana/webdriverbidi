@@ -16,11 +16,13 @@
 //! * `WEBDRIVERBIDI_HEADED=1`: show the browser window, for debugging.
 #![allow(dead_code)] // Each test crate uses a different subset of the helpers.
 
+pub mod cddl;
+
 use std::collections::HashMap;
 use std::future::Future;
 use std::panic::{AssertUnwindSafe, resume_unwind};
 use std::str::FromStr;
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Duration;
 
 use anyhow::{Context, Result, anyhow};
@@ -34,8 +36,12 @@ use webdriverbidi::events::EventType;
 use webdriverbidi::model::browsing_context::{
     BrowsingContext, GetTreeParameters, NavigateParameters, ReadinessState,
 };
+use webdriverbidi::model::script::{
+    ContextTarget, EvaluateParameters, EvaluationResult, PrimitiveProtocolValue, RemoteValue,
+    ResultOwnership, Target,
+};
 use webdriverbidi::model::session::SubscribeParameters;
-use webdriverbidi::session::WebDriverBiDiSession;
+use webdriverbidi::session::{MessageDirection, WebDriverBiDiSession};
 use webdriverbidi::webdriver::capabilities::CapabilitiesRequest;
 
 /// How long to wait for an expected event.
@@ -49,9 +55,26 @@ fn env_or(key: &str, default: &str) -> String {
 // Sessions
 // ---------------------------------------------------------------------------
 
+/// The browser under test, from `WEBDRIVERBIDI_BROWSER` (default `chrome`).
+pub fn browser() -> String {
+    env_or("WEBDRIVERBIDI_BROWSER", "chrome")
+}
+
+/// Whether the browser under test is Firefox, for recording known gaps.
+pub fn is_firefox() -> bool {
+    browser() == "firefox"
+}
+
 /// Capabilities for the configured browser, headless unless `WEBDRIVERBIDI_HEADED=1`.
+///
+/// User prompts are left open (`unhandledPromptBehavior: ignore`) so tests can
+/// observe and handle them.
 pub fn capabilities() -> CapabilitiesRequest {
     let mut caps = CapabilitiesRequest::default();
+    caps.add_extension(
+        "unhandledPromptBehavior".into(),
+        json!({ "default": "ignore" }),
+    );
     if std::env::var("WEBDRIVERBIDI_HEADED").as_deref() != Ok("1") {
         match env_or("WEBDRIVERBIDI_BROWSER", "chrome").as_str() {
             "firefox" => caps.add_extension(
@@ -75,9 +98,13 @@ pub async fn new_session() -> Result<WebDriverBiDiSession> {
         .context("WEBDRIVERBIDI_PORT must be a port number")?;
     let mut session = WebDriverBiDiSession::new(host.clone(), port, capabilities());
     session.start().await.with_context(|| {
+        let driver = match env_or("WEBDRIVERBIDI_BROWSER", "chrome").as_str() {
+            "firefox" => "geckodriver",
+            _ => "chromedriver",
+        };
         format!(
-            "could not start a session on {host}:{port}; is a WebDriver BiDi server running? \
-             (scripts/install-chromedriver.sh && drivers/chromedriver --port={port})"
+            "could not start a session on {host}:{port}; is a WebDriver BiDi server running, \
+             without another session open? (scripts/install-{driver}.sh && drivers/{driver} --port={port})"
         )
     })?;
     Ok(session)
@@ -85,22 +112,68 @@ pub async fn new_session() -> Result<WebDriverBiDiSession> {
 
 /// Run `test` with a fresh session, and end the session afterwards even if the
 /// test fails or panics.
+///
+/// Every message of the session is recorded. When the test passes, the traffic is
+/// checked with [`cddl::check_traffic`]: commands must match `remote.cddl`, and
+/// everything received must parse into the crate's types without losing data.
+/// Received messages that don't match `local.cddl` are browser deviations from
+/// the spec; they are printed, and fail the test only with `WEBDRIVERBIDI_STRICT_SPEC=1`.
 pub async fn with_session<F, Fut>(test: F) -> Result<()>
 where
     F: FnOnce(WebDriverBiDiSession) -> Fut,
     Fut: Future<Output = Result<()>>,
 {
     let mut session = new_session().await?;
+    let traffic: Arc<Mutex<Vec<(MessageDirection, Value)>>> = Arc::default();
+    let recorder = traffic.clone();
+    session.set_message_observer(Some(Arc::new(move |direction, message: &Value| {
+        recorder.lock().unwrap().push((direction, message.clone()));
+    })));
+
     let outcome = AssertUnwindSafe(test(session.clone())).catch_unwind().await;
+    session.set_message_observer(None);
     let closed = session.close().await;
     match outcome {
         Err(panic) => resume_unwind(panic),
         Ok(result) => {
             result?;
             closed.context("ending the session")?;
-            Ok(())
+            let traffic = std::mem::take(&mut *traffic.lock().unwrap());
+            check_recorded_traffic(&traffic)
         }
     }
+}
+
+fn check_recorded_traffic(traffic: &[(MessageDirection, Value)]) -> Result<()> {
+    let report = cddl::check_traffic(traffic);
+    // The same deviation repeats for every similar message; print each once.
+    let mut seen: Vec<(String, usize)> = Vec::new();
+    for deviation in &report.spec_deviations {
+        let summary = deviation.lines().next().unwrap_or_default().to_string();
+        match seen.iter_mut().find(|(s, _)| *s == summary) {
+            Some((_, count)) => *count += 1,
+            None => {
+                eprintln!("SPEC DEVIATION (browser): {deviation}");
+                seen.push((summary, 1));
+            }
+        }
+    }
+    for (summary, count) in seen.iter().filter(|(_, count)| *count > 1) {
+        eprintln!("  (seen {count} times: {summary})");
+    }
+    let strict = std::env::var("WEBDRIVERBIDI_STRICT_SPEC").as_deref() == Ok("1");
+    let mut failures = report.crate_bugs.clone();
+    if strict {
+        failures.extend(report.spec_deviations.iter().cloned());
+    }
+    anyhow::ensure!(
+        failures.is_empty(),
+        "{} problem(s) in the session's {} messages:\n  {}",
+        failures.len(),
+        report.messages,
+        failures.join("\n  ")
+    );
+    Ok(())
 }
 
 /// The first top-level browsing context of the session.
@@ -124,6 +197,67 @@ pub async fn navigate(session: &mut WebDriverBiDiSession, context: &str, url: &s
         ))
         .await?;
     Ok(())
+}
+
+/// Evaluate `expression` in `context` (awaiting promises) and return the remote value.
+pub async fn evaluate(
+    session: &mut WebDriverBiDiSession,
+    context: &str,
+    expression: &str,
+) -> Result<RemoteValue> {
+    let result = session
+        .script_evaluate(EvaluateParameters::new(
+            expression.into(),
+            Target::ContextTarget(ContextTarget::new(context.into(), None)),
+            true,
+            Some(ResultOwnership::Root),
+            None,
+            None,
+        ))
+        .await?;
+    match result {
+        EvaluationResult::EvaluationResultSuccess(success) => Ok(success.result),
+        other => Err(anyhow!("`{expression}` threw: {other:?}")),
+    }
+}
+
+/// Evaluate an expression that produces a string (e.g. `JSON.stringify(...)`).
+pub async fn eval_string(
+    session: &mut WebDriverBiDiSession,
+    context: &str,
+    expression: &str,
+) -> Result<String> {
+    match evaluate(session, context, expression).await? {
+        RemoteValue::PrimitiveProtocolValue(PrimitiveProtocolValue::StringValue(s)) => Ok(s.value),
+        other => Err(anyhow!("`{expression}` returned {other:?}, not a string")),
+    }
+}
+
+/// Run `eval_string(expression)` on a clone of the session in a background task,
+/// for page actions that block until the test reacts (intercepted requests,
+/// auth challenges, prompts).
+pub fn spawn_eval(
+    session: &WebDriverBiDiSession,
+    context: &str,
+    expression: &str,
+) -> tokio::task::JoinHandle<Result<String>> {
+    let mut session = session.clone();
+    let context = context.to_string();
+    let expression = expression.to_string();
+    tokio::spawn(async move { eval_string(&mut session, &context, &expression).await })
+}
+
+/// A fresh directory under the system temp dir, e.g. for downloads.
+pub fn temp_dir(name: &str) -> Result<std::path::PathBuf> {
+    static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let n = COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let dir = std::env::temp_dir().join(format!(
+        "webdriverbidi-tests-{}-{name}-{n}",
+        std::process::id()
+    ));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir)?;
+    Ok(dir)
 }
 
 // ---------------------------------------------------------------------------
@@ -170,6 +304,28 @@ pub fn supported<T>(command: &str, result: Result<T, CommandError>) -> Result<Op
 pub struct Events {
     method: String,
     rx: mpsc::UnboundedReceiver<Value>,
+}
+
+/// Like [`subscribe`], but `Ok(None)` (and a printed skip notice) if the browser
+/// doesn't know the event.
+pub async fn subscribe_if_supported(
+    session: &mut WebDriverBiDiSession,
+    method: &str,
+) -> Result<Option<Events>> {
+    match subscribe(session, method).await {
+        Ok(events) => Ok(Some(events)),
+        Err(e) => {
+            let unknown = e
+                .downcast_ref::<CommandError>()
+                .is_some_and(|e| error_code(e) == Some("invalid argument"));
+            if unknown {
+                eprintln!("SKIP: the browser doesn't support the {method} event: {e}");
+                Ok(None)
+            } else {
+                Err(e)
+            }
+        }
+    }
 }
 
 /// Subscribe to `method` (e.g. `"browsingContext.load"`) and collect its events.
@@ -249,6 +405,23 @@ pub fn inline(html: &str) -> String {
     format!("http://{}/inline/{id}", server.addr)
 }
 
+/// URL of a fixed route on the test server:
+///
+/// * `/auth`: `401` with a Basic challenge (realm `test`) until the request carries
+///   credentials `user:pass`, then `200` with an HTML page.
+/// * `/headers`: the request headers as a JSON object (lowercase names).
+/// * `/download`: a small text file sent as an attachment named `file.txt`.
+/// * `/cookie`: `200` that sets the cookie `served=yes`.
+/// * `/slow`: an HTML page that takes 3 seconds to respond.
+pub fn server_url(path: &str) -> String {
+    format!("http://{}{path}", server().addr)
+}
+
+/// Host and port of the test server, e.g. for cookie domains.
+pub fn server_host() -> String {
+    server().addr.ip().to_string()
+}
+
 struct Server {
     addr: std::net::SocketAddr,
     pages: &'static Mutex<HashMap<usize, String>>,
@@ -272,16 +445,81 @@ fn server() -> &'static Server {
             runtime.block_on(async move {
                 use axum::extract::Path;
                 use axum::http::StatusCode;
+                use axum::http::{HeaderMap, header};
                 use axum::response::{Html, IntoResponse};
-                let app = axum::Router::new().route(
-                    "/inline/{id}",
-                    axum::routing::get(move |Path(id): Path<usize>| async move {
-                        match pages.lock().unwrap().get(&id) {
-                            Some(html) => Html(html.clone()).into_response(),
-                            None => StatusCode::NOT_FOUND.into_response(),
-                        }
-                    }),
-                );
+                use axum::routing::get;
+                let app = axum::Router::new()
+                    .route(
+                        "/inline/{id}",
+                        get(move |Path(id): Path<usize>| async move {
+                            match pages.lock().unwrap().get(&id) {
+                                Some(html) => Html(html.clone()).into_response(),
+                                None => StatusCode::NOT_FOUND.into_response(),
+                            }
+                        }),
+                    )
+                    .route(
+                        "/auth",
+                        get(|headers: HeaderMap| async move {
+                            // base64("user:pass")
+                            let authorized = headers
+                                .get(header::AUTHORIZATION)
+                                .is_some_and(|v| v == "Basic dXNlcjpwYXNz");
+                            if authorized {
+                                Html("<p>authenticated</p>").into_response()
+                            } else {
+                                (
+                                    StatusCode::UNAUTHORIZED,
+                                    [(header::WWW_AUTHENTICATE, "Basic realm=\"test\"")],
+                                    "unauthorized",
+                                )
+                                    .into_response()
+                            }
+                        }),
+                    )
+                    .route(
+                        "/headers",
+                        get(|headers: HeaderMap| async move {
+                            let map: serde_json::Map<String, Value> = headers
+                                .iter()
+                                .map(|(k, v)| {
+                                    (k.as_str().to_string(), json!(v.to_str().unwrap_or("")))
+                                })
+                                .collect();
+                            axum::Json(Value::Object(map))
+                        }),
+                    )
+                    .route(
+                        "/download",
+                        get(|| async {
+                            (
+                                [
+                                    (header::CONTENT_TYPE, "text/plain"),
+                                    (
+                                        header::CONTENT_DISPOSITION,
+                                        "attachment; filename=\"file.txt\"",
+                                    ),
+                                ],
+                                "downloaded content",
+                            )
+                        }),
+                    )
+                    .route(
+                        "/slow",
+                        get(|| async {
+                            tokio::time::sleep(Duration::from_secs(3)).await;
+                            Html("<p>slow</p>")
+                        }),
+                    )
+                    .route(
+                        "/cookie",
+                        get(|| async {
+                            (
+                                [(header::SET_COOKIE, "served=yes; Path=/")],
+                                Html("<p>cookie set</p>"),
+                            )
+                        }),
+                    );
                 let listener = tokio::net::TcpListener::from_std(listener).expect("tokio listener");
                 axum::serve(listener, app).await.expect("test server");
             });

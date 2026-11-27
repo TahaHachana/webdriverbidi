@@ -32,6 +32,21 @@ use crate::model::web_extension::*;
 use crate::webdriver::capabilities::CapabilitiesRequest;
 use crate::webdriver::session;
 
+/// Which way a WebDriver BiDi message travelled.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MessageDirection {
+    /// A command this client sent to the remote end.
+    Sent,
+    /// A command response, error or event received from the remote end.
+    Received,
+}
+
+/// A callback that sees every WebDriver BiDi message, e.g. for logging or tests.
+pub type MessageObserver = Arc<dyn Fn(MessageDirection, &Value) + Send + Sync>;
+
+/// Shared, replaceable slot for the session's message observer.
+pub(crate) type ObserverSlot = Arc<std::sync::RwLock<Option<MessageObserver>>>;
+
 /// Type alias for the event handler functions.
 pub type EventHandler =
     Box<dyn Fn(Value) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
@@ -65,6 +80,7 @@ pub struct WebDriverBiDiSession {
     pub websocket_stream: Option<Arc<Mutex<WebSocketStream<MaybeTlsStream<TcpStream>>>>>,
     pub pending_commands: Arc<Mutex<HashMap<u64, oneshot::Sender<Value>>>>,
     event_handlers: Arc<Mutex<HashMap<EventType, EventHandler>>>,
+    message_observer: ObserverSlot,
 }
 
 impl WebDriverBiDiSession {
@@ -88,7 +104,20 @@ impl WebDriverBiDiSession {
             websocket_stream: None,
             pending_commands: Arc::new(Mutex::new(HashMap::new())),
             event_handlers: Arc::new(Mutex::new(HashMap::new())),
+            message_observer: Arc::new(std::sync::RwLock::new(None)),
         }
+    }
+
+    /// Set (or with `None`, remove) a callback that is called with every message
+    /// sent to and received from the remote end, as raw JSON.
+    ///
+    /// The observer runs on the task that sends or receives the message, so it
+    /// should return quickly. Clones of a session share the observer.
+    pub fn set_message_observer(&self, observer: Option<MessageObserver>) {
+        *self
+            .message_observer
+            .write()
+            .unwrap_or_else(|poisoned| poisoned.into_inner()) = observer;
     }
 
     /// Start a WebDriver session, establishe a WebSocket connection and
@@ -144,6 +173,7 @@ impl WebDriverBiDiSession {
             command_sender::send_command(
                 websocket_stream.clone(),
                 self.pending_commands.clone(),
+                self.message_observer.clone(),
                 command,
             )
             .await
@@ -167,6 +197,7 @@ impl WebDriverBiDiSession {
             websocket_stream,
             pending_commands,
             event_handlers,
+            self.message_observer.clone(),
         ));
     }
 

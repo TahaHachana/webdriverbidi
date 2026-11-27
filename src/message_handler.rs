@@ -12,8 +12,9 @@ use tokio::sync::{Mutex, oneshot};
 use tokio_tungstenite::tungstenite::protocol::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
+use crate::command_sender::notify;
 use crate::events::EventType;
-use crate::session::EventHandler;
+use crate::session::{EventHandler, MessageDirection, ObserverSlot};
 
 const ID_FIELD: &str = "id";
 const TYPE_FIELD: &str = "type";
@@ -25,6 +26,7 @@ pub async fn handle_messages(
     websocket_stream: Arc<Mutex<WebSocketStream<MaybeTlsStream<TcpStream>>>>,
     pending_commands: Arc<Mutex<HashMap<u64, oneshot::Sender<Value>>>>,
     event_handlers: Arc<Mutex<HashMap<EventType, EventHandler>>>,
+    observer: ObserverSlot,
 ) {
     loop {
         let message = {
@@ -47,6 +49,7 @@ pub async fn handle_messages(
         match message {
             Some(Ok(Message::Text(text))) => match serde_json::from_str::<Value>(&text) {
                 Ok(json) => {
+                    notify(&observer, MessageDirection::Received, &json);
                     // debug!("Raw message JSON: {:?}", json);
                     // Command response message
                     if let Some(id) = json.get(ID_FIELD).and_then(|id| id.as_u64()) {

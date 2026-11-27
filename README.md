@@ -346,18 +346,27 @@ cargo test --lib --test cddl_conformance   # no browser needed; runs in CI
 - coverage tests fail if the spec has a command, result, event or error code the suite
   doesn't exercise, so `scripts/update-cddl.sh` followed by `cargo test` lists what to implement.
 
-The other files in `tests/` (one per spec module) are live integration tests against a real
-browser, which also run in CI:
+The other files in `tests/` (one per spec module) are live integration tests against real
+browsers. They cover every command and event the crate implements, and run in CI on Chrome and
+Firefox:
 
 ```bash
 scripts/install-chromedriver.sh && drivers/chromedriver --port=4444 &
 cargo test --tests -- --test-threads=1
+
+scripts/install-geckodriver.sh && drivers/geckodriver --port=4444 &
+WEBDRIVERBIDI_BROWSER=firefox cargo test --tests -- --test-threads=1
 ```
 
-They run headless. `WEBDRIVERBIDI_BROWSER=firefox`, `WEBDRIVERBIDI_HEADED=1`, `WEBDRIVERBIDI_HOST`
-and `WEBDRIVERBIDI_PORT` change that; see `tests/support/mod.rs` for the harness
-(`with_session`, `inline` test pages, `subscribe` for events, and `supported`, which skips
-commands a browser doesn't implement yet).
+Every message a test sends or receives is also checked against the spec: commands must match
+`cddl/remote.cddl`, and everything received must parse into the crate's types without losing
+data. Messages where the browser itself deviates from the spec are printed as
+`SPEC DEVIATION (browser)` (run with `-- --nocapture` to see them), and fail the test only with
+`WEBDRIVERBIDI_STRICT_SPEC=1`.
+
+The tests run headless; `WEBDRIVERBIDI_HEADED=1`, `WEBDRIVERBIDI_HOST` and `WEBDRIVERBIDI_PORT`
+change that. See `tests/support/` for the harness (`with_session`, `inline` test pages,
+`subscribe` for events, and `supported`, which skips commands a browser doesn't implement yet).
 
 ## Releasing
 

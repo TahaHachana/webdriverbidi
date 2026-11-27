@@ -5,6 +5,29 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/) (while below 1.0, a
 minor version bump may contain breaking changes).
 
+## [Unreleased]
+
+### Added
+
+- `WebDriverBiDiSession::set_message_observer`, with `MessageObserver` and
+  `MessageDirection`: a callback that sees every message sent to and received from the
+  remote end as raw JSON, e.g. for logging or recording traffic.
+
+### Changed (breaking)
+
+- `ErrorCode` has a new variant, `NoSuchClientWindow`, which breaks exhaustive `match`es.
+
+### Fixed
+
+- `ErrorCode` lacked `no such client window`, which the spec's prose defines (its CDDL list
+  omits it) and Firefox returns for `browser.setClientWindowState` on an unknown window, so
+  such error responses failed to parse as `ErrorResponse`.
+- `input.performActions` sent `"parameters": null` for a pointer source without
+  parameters; the field is now omitted, as the spec requires.
+- `network.authRequired` events from Chrome failed to parse: Chrome 158 sends
+  `response.status: -1`, which the spec doesn't allow (`js-uint`). A negative status is now
+  read as `0`, Fetch's "no status" value; `ResponseData::status` stays a `u64`.
+
 ## [0.4.0] - 2026-11-27
 
 ### Changed (breaking)

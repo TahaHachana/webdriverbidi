@@ -48,6 +48,10 @@ pub enum ErrorCode {
     InvalidWebExtension,
     #[serde(rename = "move target out of bounds")]
     MoveTargetOutOfBounds,
+    /// Defined and used in the spec's prose (`browser.setClientWindowState`), but
+    /// missing from its CDDL `ErrorCode` list.
+    #[serde(rename = "no such client window")]
+    NoSuchClientWindow,
     #[serde(rename = "no such alert")]
     NoSuchAlert,
     #[serde(rename = "no such network collector")]

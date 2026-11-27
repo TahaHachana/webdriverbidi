@@ -13,10 +13,8 @@
 //!
 //! Run with: `cargo test --test cddl_conformance`
 
-use std::sync::OnceLock;
+mod support;
 
-use cddl::ast::CDDL;
-use cddl::validator::{Validator, json::JSONValidator};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
@@ -35,192 +33,7 @@ use webdriverbidi::model::session as ses;
 use webdriverbidi::model::storage as st;
 use webdriverbidi::model::web_extension as wx;
 
-// ---------------------------------------------------------------------------
-// CDDL loading and validation
-// ---------------------------------------------------------------------------
-
-/// Rewrites applied to the spec CDDL before validation. They work around bugs
-/// in the `cddl` crate (0.10.7) and only loosen the schema. Each `from` string
-/// must still occur in the spec, so a stale patch is noticed.
-const VALIDATOR_WORKAROUNDS: &[(&str, &str, &str)] = &[
-    (
-        "js-int = -9007199254740991..9007199254740991",
-        "js-int = int",
-        "the validator rejects every value against a range with a negative lower bound",
-    ),
-    (
-        "(js-uint .ge 1)",
-        "(uint .ge 1)",
-        "the validator can't apply `.ge` to a type that is itself a range",
-    ),
-    (
-        "network.CollectorType .default \"blob\"",
-        "network.CollectorType",
-        "the validator rejects every value when `.default` follows a literal-valued rule",
-    ),
-    (
-        "  bytes: network.BytesValue,",
-        "  \"bytes\": network.BytesValue,",
-        "the validator reads a bare `bytes` key as the CDDL `bytes` type",
-    ),
-    (
-        "  text: text / null,",
-        "  \"text\": text / null,",
-        "inside an included group (log.BaseLogEntry), the validator reads a bare `text` key as the CDDL `text` type",
-    ),
-];
-
-struct Spec {
-    remote_src: &'static str,
-    local_src: &'static str,
-    remote: CDDL<'static>,
-    local: CDDL<'static>,
-}
-
-fn spec() -> &'static Spec {
-    static SPEC: OnceLock<Spec> = OnceLock::new();
-    SPEC.get_or_init(|| {
-        let read = |name: &str| {
-            let path = format!("{}/cddl/{name}", env!("CARGO_MANIFEST_DIR"));
-            std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("reading {path}: {e}"))
-        };
-        let (mut remote, mut local) = (read("remote.cddl"), read("local.cddl"));
-        for (from, to, why) in VALIDATOR_WORKAROUNDS {
-            assert!(
-                remote.contains(from) || local.contains(from),
-                "validator workaround no longer applies ({why}); remove it: {from}"
-            );
-            remote = remote.replace(from, to);
-            local = local.replace(from, to);
-        }
-        let remote_src: &'static str = Box::leak(remote.into_boxed_str());
-        let local_src: &'static str = Box::leak(local.into_boxed_str());
-        Spec {
-            remote_src,
-            local_src,
-            remote: cddl::cddl_from_str(remote_src, true).expect("parse remote.cddl"),
-            local: cddl::cddl_from_str(local_src, true).expect("parse local.cddl"),
-        }
-    })
-}
-
-/// Validate `json` against the CDDL type expression `root`, which is spliced in
-/// as the document's first (root) rule so the spec is parsed only once.
-fn validate(doc: &CDDL<'static>, doc_src: &str, root: &str, json: &Value) -> Result<(), String> {
-    // A typo in a rule name must fail loudly instead of validating against nothing.
-    for name in rule_refs(root) {
-        let definition = format!("{name} =");
-        if !doc_src
-            .lines()
-            .any(|l| l.trim_start().starts_with(&definition))
-        {
-            return Err(format!("rule `{name}` is not defined in the spec"));
-        }
-    }
-    let src: &'static str = Box::leak(format!("root = {root}").into_boxed_str());
-    let root_rule =
-        cddl::cddl_from_str(src, true).map_err(|e| format!("bad root `{root}`: {e}"))?;
-    let mut doc = doc.clone();
-    doc.rules.insert(0, root_rule.rules[0].clone());
-    let mut validator = JSONValidator::new(&doc, json.clone(), None);
-    validator.validate().map_err(|e| e.to_string())
-}
-
-/// Dotted rule names (e.g. `browsingContext.Navigate`) referenced by a root expression.
-fn rule_refs(root: &str) -> Vec<&str> {
-    root.split(|c: char| !(c.is_alphanumeric() || c == '.' || c == '-'))
-        .filter(|t| t.contains('.') && t.chars().next().is_some_and(char::is_alphabetic))
-        .collect()
-}
-
-/// `browsingContext.navigate` -> `browsingContext.Navigate`
-fn rule_for_method(method: &str) -> String {
-    let (module, name) = method.split_once('.').expect("method has a module");
-    let mut chars = name.chars();
-    let first = chars.next().expect("non-empty name").to_ascii_uppercase();
-    format!("{module}.{first}{}", chars.as_str())
-}
-
-/// Quoted `method: "x.y"` values in a CDDL file.
-fn spec_methods(src: &str) -> Vec<String> {
-    let mut out: Vec<String> = src
-        .split("method: \"")
-        .skip(1)
-        .filter_map(|rest| rest.split('"').next())
-        .map(str::to_string)
-        .collect();
-    out.sort();
-    out.dedup();
-    out
-}
-
-/// Names of rules like `browsingContext.NavigateResult = ...`.
-fn spec_result_rules(src: &str) -> Vec<String> {
-    let mut out: Vec<String> = src
-        .lines()
-        .filter_map(|l| l.split_once(" = ").map(|(name, _)| name.trim()))
-        .filter(|name| name.contains('.') && name.ends_with("Result"))
-        .map(str::to_string)
-        .collect();
-    out.sort();
-    out.dedup();
-    out
-}
-
-/// The quoted alternatives of `ErrorCode = "a" / "b" / ...`.
-fn spec_error_codes(src: &str) -> Vec<String> {
-    let start = src.find("ErrorCode = ").expect("ErrorCode rule");
-    let body = &src[start..];
-    let end = body.find("\n\n").unwrap_or(body.len());
-    body[..end]
-        .split('"')
-        .skip(1)
-        .step_by(2)
-        .map(str::to_string)
-        .collect()
-}
-
-/// Fields in `original` that are missing or changed in `round_tripped`.
-/// A field whose value is `null` may be dropped, since an absent optional
-/// field and an explicit `null` mean the same thing to this crate's types.
-fn lossy_fields(original: &Value, round_tripped: &Value, path: &str, out: &mut Vec<String>) {
-    match (original, round_tripped) {
-        (Value::Object(a), Value::Object(b)) => {
-            for (key, value) in a {
-                let child = format!("{path}/{key}");
-                match b.get(key) {
-                    None if value.is_null() => {}
-                    None => out.push(format!("{child}: dropped")),
-                    Some(other) => lossy_fields(value, other, &child, out),
-                }
-            }
-        }
-        (Value::Array(a), Value::Array(b)) if a.len() == b.len() => {
-            for (i, (x, y)) in a.iter().zip(b).enumerate() {
-                lossy_fields(x, y, &format!("{path}/{i}"), out);
-            }
-        }
-        (Value::Number(a), Value::Number(b)) if a.as_f64() == b.as_f64() => {}
-        (a, b) if a == b => {}
-        (a, b) => out.push(format!("{path}: {a} became {b}")),
-    }
-}
-
-fn short(e: &str) -> String {
-    let lines: Vec<&str> = e.lines().filter(|l| !l.trim().is_empty()).take(4).collect();
-    lines.join("\n      ")
-}
-
-fn report(kind: &str, failures: Vec<String>, total: usize) {
-    if !failures.is_empty() {
-        panic!(
-            "{} of {total} {kind} failed:\n\n{}\n",
-            failures.len(),
-            failures.join("\n\n")
-        );
-    }
-    println!("{total} {kind} conform to the spec");
-}
+use support::cddl::*;
 
 // ---------------------------------------------------------------------------
 // Builders for commonly used values
@@ -1026,6 +839,21 @@ fn command_cases() -> Vec<CommandCase> {
             )),
         ),
         cmd(
+            "input.performActions (pointer source without parameters)",
+            inp::PerformActions::new(inp::PerformActionsParameters::new(
+                s("ctx-1"),
+                vec![inp::SourceActions::PointerSourceActions(
+                    inp::PointerSourceActions::new(
+                        s("pointer-1"),
+                        None,
+                        vec![inp::PointerSourceAction::PointerUpAction(
+                            inp::PointerUpAction::new(0),
+                        )],
+                    ),
+                )],
+            )),
+        ),
+        cmd(
             "input.releaseActions",
             inp::ReleaseActions::new(inp::ReleaseActionsParameters::new(s("ctx-1"))),
         ),
@@ -1409,15 +1237,6 @@ fn every_spec_command_is_covered() {
 // ---------------------------------------------------------------------------
 // Command results and events (local end input)
 // ---------------------------------------------------------------------------
-
-type RoundTrip = fn(&Value) -> Result<Value, String>;
-
-/// Deserialize into `T` and serialize back.
-fn round_trip<T: DeserializeOwned + Serialize>(json: &Value) -> Result<Value, String> {
-    let parsed: T =
-        serde_json::from_value(json.clone()).map_err(|e| format!("deserialize: {e}"))?;
-    serde_json::to_value(&parsed).map_err(|e| format!("serialize: {e}"))
-}
 
 struct Fixture {
     /// Spec rule the JSON must satisfy, e.g. `browsingContext.NavigateResult`.
@@ -2124,6 +1943,24 @@ fn every_spec_event_is_covered() {
         missing.is_empty(),
         "spec events without a conformance fixture: {missing:?}"
     );
+}
+
+/// Error codes the spec's prose defines and uses but its CDDL `ErrorCode` omits.
+const PROSE_ONLY_ERROR_CODES: &[&str] = &["no such client window"];
+
+#[test]
+fn prose_only_error_codes_parse() {
+    let cddl_codes = spec_error_codes(spec().local_src);
+    for code in PROSE_ONLY_ERROR_CODES {
+        assert!(
+            !cddl_codes.iter().any(|c| c == code),
+            "`{code}` is now in the CDDL ErrorCode list; remove it from PROSE_ONLY_ERROR_CODES"
+        );
+        assert!(
+            serde_json::from_value::<ErrorCode>(json!(code)).is_ok(),
+            "`{code}` is not a known ErrorCode"
+        );
+    }
 }
 
 #[test]
