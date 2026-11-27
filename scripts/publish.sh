@@ -101,9 +101,10 @@ cargo clippy --all-targets
 step "cargo build"
 cargo build --all-targets
 
-step "cargo test (unit + doc)"
+step "cargo test (unit, doc and CDDL conformance)"
 cargo test --lib
 cargo test --doc
+cargo test --test cddl_conformance
 
 if [[ $WITH_INTEGRATION -eq 1 ]]; then
   step "cargo test (integration; needs a WebDriver on localhost:4444)"

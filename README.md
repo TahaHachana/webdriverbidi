@@ -332,6 +332,24 @@ scripts/update-cddl.sh <ref>    # a specific branch or tag
 
 Then review `git diff cddl/` and update `src/model`, `src/commands`, `src/session.rs` and this README to match.
 
+## Testing
+
+```bash
+cargo test --lib --test cddl_conformance   # no browser needed; runs in CI
+```
+
+`tests/cddl_conformance.rs` checks the crate against the spec's CDDL:
+
+- every command, built through the public API, is validated against `cddl/remote.cddl`;
+- spec-valid JSON for every command result and event (validated against `cddl/local.cddl`)
+  must deserialize into the crate's types and serialize back without losing fields;
+- coverage tests fail if the spec has a command, result, event or error code the suite
+  doesn't exercise, so `scripts/update-cddl.sh` followed by `cargo test` lists what to implement.
+
+The other files in `tests/` are integration tests that need a WebDriver BiDi server on
+`localhost:4444`, e.g. `scripts/install-chromedriver.sh && drivers/chromedriver --port=4444`,
+then `cargo test --tests -- --test-threads=1`.
+
 ## Releasing
 
 ```bash
