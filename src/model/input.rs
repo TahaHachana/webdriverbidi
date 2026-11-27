@@ -124,6 +124,7 @@ pub struct PointerSourceActions {
     #[serde(rename = "type")]
     pub pointer_source_actions_type: String,
     pub id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub parameters: Option<PointerParameters>,
     pub actions: Vec<PointerSourceAction>,
 }

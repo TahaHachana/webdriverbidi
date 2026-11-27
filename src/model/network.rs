@@ -242,6 +242,10 @@ pub struct ResponseContent {
 pub struct ResponseData {
     pub url: String,
     pub protocol: String,
+    /// The HTTP status code. `0` when the browser reports no status: the spec
+    /// requires a non-negative value (0 is Fetch's "no status"), but Chrome sends
+    /// `-1` in `network.authRequired`, which is read as `0`.
+    #[serde(deserialize_with = "crate::model::common::uint_or_zero")]
     pub status: JsUint,
     #[serde(rename = "statusText")]
     pub status_text: String,
@@ -981,5 +985,26 @@ mod tests {
         let params: BaseParameters = serde_json::from_value(raw).unwrap();
         assert_eq!(params.redirect_count, 2);
         assert_eq!(params.user_context.as_deref(), Some("default"));
+    }
+
+    fn response_with_status(status: serde_json::Value) -> serde_json::Value {
+        json!({
+            "url": "https://example.com/", "protocol": "http/1.1", "status": status,
+            "statusText": "", "fromCache": false, "headers": [], "mimeType": "",
+            "bytesReceived": 0, "headersSize": null, "bodySize": null, "content": { "size": 0 }
+        })
+    }
+
+    #[test]
+    fn response_status_reads_negative_as_zero() {
+        let ok: ResponseData = serde_json::from_value(response_with_status(json!(401))).unwrap();
+        assert_eq!(ok.status, 401);
+        // Chrome 158 sends -1 in network.authRequired.
+        let unknown: ResponseData =
+            serde_json::from_value(response_with_status(json!(-1))).unwrap();
+        assert_eq!(unknown.status, 0);
+        assert!(
+            serde_json::from_value::<ResponseData>(response_with_status(json!("401"))).is_err()
+        );
     }
 }
