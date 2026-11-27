@@ -12,7 +12,7 @@ use crate::model::session::SessionCommand;
 use crate::model::storage::StorageCommand;
 use crate::model::web_extension::WebExtensionCommand;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Command {
     pub id: JsUint,
     #[serde(flatten)]
@@ -31,7 +31,7 @@ impl Command {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum CommandData {
     BrowserCommand(BrowserCommand),
@@ -45,7 +45,7 @@ pub enum CommandData {
     WebExtensionCommand(WebExtensionCommand),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct CommandResponse {
     #[serde(rename = "type")]
     response_type: String,

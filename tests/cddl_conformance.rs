@@ -1957,8 +1957,11 @@ fn prose_only_error_codes_parse() {
             "`{code}` is now in the CDDL ErrorCode list; remove it from PROSE_ONLY_ERROR_CODES"
         );
         assert!(
-            serde_json::from_value::<ErrorCode>(json!(code)).is_ok(),
-            "`{code}` is not a known ErrorCode"
+            !matches!(
+                serde_json::from_value::<ErrorCode>(json!(code)),
+                Ok(ErrorCode::Other(_)) | Err(_)
+            ),
+            "`{code}` is not a known ErrorCode variant"
         );
     }
 }
@@ -1989,8 +1992,11 @@ fn every_spec_error_code_parses() {
                 }
             }
         }
-        if serde_json::from_value::<ErrorCode>(json!(code)).is_err() {
-            failures.push(format!("  {code}: not a known ErrorCode"));
+        match serde_json::from_value::<ErrorCode>(json!(code)) {
+            Ok(ErrorCode::Other(_)) | Err(_) => {
+                failures.push(format!("  {code}: not a known ErrorCode variant"))
+            }
+            Ok(_) => {}
         }
     }
     report("error codes", failures, codes.len());

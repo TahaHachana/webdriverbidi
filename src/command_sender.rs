@@ -8,6 +8,7 @@ use serde::de::DeserializeOwned;
 use serde_json::Value;
 use tokio::sync::{Mutex, oneshot};
 use tokio::time::{Duration, timeout};
+use tokio_tungstenite::tungstenite;
 use tokio_tungstenite::tungstenite::protocol::Message;
 
 use super::error::CommandError;
@@ -71,7 +72,12 @@ pub async fn send_command<T: Serialize, U: DeserializeOwned>(
         if let Err(e) = websocket_writer.send(message).await {
             error!("Error sending message: {:?}", e);
             pending_commands.lock().await.remove(&command_id);
-            return Err(CommandError::WebSocketSendError(e));
+            return Err(match e {
+                tungstenite::Error::ConnectionClosed | tungstenite::Error::AlreadyClosed => {
+                    CommandError::ConnectionClosed
+                }
+                e => CommandError::WebSocketSendError(Box::new(e)),
+            });
         }
     }
 
@@ -85,8 +91,9 @@ pub async fn send_command<T: Serialize, U: DeserializeOwned>(
             CommandError::TimeoutError
         })?
         .map_err(|e| {
+            // The message handler dropped the sender: the connection ended.
             error!("Receiver error: {:?}:", e);
-            CommandError::OneshotReceiverError(e)
+            CommandError::ConnectionClosed
         })?;
 
     debug!("Received response: {:?}", response);

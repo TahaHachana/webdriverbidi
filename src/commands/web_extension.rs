@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 use super::id;
 use super::utils;
 
-use crate::define_command;
 use crate::error::CommandError;
 use crate::model::result::EmptyResult;
 use crate::model::web_extension::*;

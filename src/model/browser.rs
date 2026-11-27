@@ -1,12 +1,9 @@
 use serde::{Deserialize, Serialize};
 
+use crate::model::common::{EmptyParams, JsInt, JsUint};
 use crate::model::session::{ProxyConfiguration, UserPromptHandler};
-use crate::{
-    commands::session,
-    model::common::{EmptyParams, JsInt, JsUint},
-};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum BrowserCommand {
     Close(Close),
@@ -18,7 +15,7 @@ pub enum BrowserCommand {
     SetDownloadBehavior(SetDownloadBehavior),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum BrowserResult {
     CreateUserContextResult(CreateUserContextResult),
@@ -29,7 +26,7 @@ pub enum BrowserResult {
 
 pub type ClientWindow = String;
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct ClientWindowInfo {
     pub active: bool,
     #[serde(rename = "clientWindow")]
@@ -63,7 +60,7 @@ impl ClientWindowInfo {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum ClientWindowState {
     Fullscreen,
@@ -74,13 +71,13 @@ pub enum ClientWindowState {
 
 pub type UserContext = String;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct UserContextInfo {
     #[serde(rename = "userContext")]
     pub user_context: UserContext,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Close {
     pub method: String,
     pub params: EmptyParams,
@@ -95,7 +92,7 @@ impl Close {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct CreateUserContext {
     pub method: String,
     pub params: CreateUserContextParameters,
@@ -110,7 +107,7 @@ impl CreateUserContext {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct CreateUserContextParameters {
     #[serde(
         rename = "acceptInsecureCerts",
@@ -142,7 +139,7 @@ impl CreateUserContextParameters {
 
 pub type CreateUserContextResult = UserContextInfo;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct GetClientWindows {
     pub method: String,
     pub params: EmptyParams,
@@ -157,13 +154,13 @@ impl GetClientWindows {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetClientWindowsResult {
     #[serde(rename = "clientWindows")]
     pub client_windows: Vec<ClientWindowInfo>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct GetUserContexts {
     pub method: String,
     pub params: EmptyParams,
@@ -178,13 +175,13 @@ impl GetUserContexts {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetUserContextsResult {
     #[serde(rename = "userContexts")]
     pub user_contexts: Vec<UserContextInfo>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct RemoveUserContext {
     pub method: String,
     pub params: RemoveUserContextParameters,
@@ -199,7 +196,7 @@ impl RemoveUserContext {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct RemoveUserContextParameters {
     #[serde(rename = "userContext")]
     pub user_context: UserContext,
@@ -211,7 +208,7 @@ impl RemoveUserContextParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetClientWindowState {
     pub method: String,
     pub params: SetClientWindowStateParameters,
@@ -226,7 +223,7 @@ impl SetClientWindowState {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetClientWindowStateParameters {
     #[serde(rename = "clientWindow")]
     pub client_window: ClientWindow,
@@ -247,14 +244,14 @@ impl SetClientWindowStateParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum ClientWindowNamedOrRectState {
     ClientWindowNamedState(ClientWindowNamedState),
     ClientWindowRectState(ClientWindowRectState),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ClientWindowNamedState {
     pub state: ClientWindowState,
 }
@@ -265,7 +262,7 @@ impl ClientWindowNamedState {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ClientWindowRectState {
     pub state: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -298,7 +295,7 @@ impl ClientWindowRectState {
 
 pub type SetClientWindowStateResult = ClientWindowInfo;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetDownloadBehavior {
     pub method: String,
     pub params: SetDownloadBehaviorParameters,
@@ -313,7 +310,7 @@ impl SetDownloadBehavior {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetDownloadBehaviorParameters {
     /// `None` resets the download behavior to the default.
     #[serde(rename = "downloadBehavior")]
@@ -334,7 +331,7 @@ impl SetDownloadBehaviorParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum DownloadBehavior {
     Allowed {

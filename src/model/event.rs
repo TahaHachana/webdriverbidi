@@ -7,7 +7,7 @@ use crate::model::log::LogEvent;
 use crate::model::network::NetworkEvent;
 use crate::model::script::ScriptEvent;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Event {
     #[serde(rename = "type")]
     pub event_type: String,
@@ -16,7 +16,11 @@ pub struct Event {
     pub extensible: Extensible,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[allow(
+    clippy::large_enum_variant,
+    reason = "mirrors a spec union; boxing variants would make matching on it awkward for no measured gain"
+)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum EventData {
     BrowsingContextEvent(BrowsingContextEvent),

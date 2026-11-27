@@ -4,7 +4,7 @@ use crate::model::common::{JsInt, JsUint};
 use crate::model::script::SharedReference;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum InputCommand {
     PerformActions(PerformActions),
@@ -12,7 +12,7 @@ pub enum InputCommand {
     SetFiles(SetFiles),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum InputEvent {
     FileDialogOpened(FileDialogOpened),
@@ -21,7 +21,7 @@ pub enum InputEvent {
 /// All input commands return an empty result.
 pub type InputResult = crate::model::result::EmptyResult;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ElementOrigin {
     #[serde(rename = "type")]
     pub element_origin_type: String,
@@ -37,7 +37,7 @@ impl ElementOrigin {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PerformActions {
     pub method: String,
     pub params: PerformActionsParameters,
@@ -52,7 +52,7 @@ impl PerformActions {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PerformActionsParameters {
     pub context: BrowsingContext,
     pub actions: Vec<SourceActions>,
@@ -64,7 +64,7 @@ impl PerformActionsParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum SourceActions {
     NoneSourceActions(NoneSourceActions),
@@ -73,7 +73,7 @@ pub enum SourceActions {
     WheelSourceActions(WheelSourceActions),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct NoneSourceActions {
     #[serde(rename = "type")]
     pub none_source_actions_type: String,
@@ -93,7 +93,7 @@ impl NoneSourceActions {
 
 pub type NoneSourceAction = PauseAction;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct KeySourceActions {
     #[serde(rename = "type")]
     pub key_source_actions_type: String,
@@ -111,7 +111,7 @@ impl KeySourceActions {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum KeySourceAction {
     PauseAction(PauseAction),
@@ -119,7 +119,7 @@ pub enum KeySourceAction {
     KeyUpAction(KeyUpAction),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PointerSourceActions {
     #[serde(rename = "type")]
     pub pointer_source_actions_type: String,
@@ -144,7 +144,7 @@ impl PointerSourceActions {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum PointerType {
     Mouse,
@@ -152,7 +152,7 @@ pub enum PointerType {
     Touch,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PointerParameters {
     #[serde(rename = "pointerType", skip_serializing_if = "Option::is_none")]
     pub pointer_type: Option<PointerType>,
@@ -164,7 +164,7 @@ impl PointerParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum PointerSourceAction {
     PauseAction(PauseAction),
@@ -173,7 +173,7 @@ pub enum PointerSourceAction {
     PointerMoveAction(PointerMoveAction),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct WheelSourceActions {
     #[serde(rename = "type")]
     pub wheel_source_actions_type: String,
@@ -191,14 +191,14 @@ impl WheelSourceActions {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum WheelSourceAction {
     PauseAction(PauseAction),
     WheelScrollAction(WheelScrollAction),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PauseAction {
     #[serde(rename = "type")]
     pub pause_action_type: String,
@@ -215,7 +215,7 @@ impl PauseAction {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct KeyDownAction {
     #[serde(rename = "type")]
     pub key_down_action_type: String,
@@ -231,7 +231,7 @@ impl KeyDownAction {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct KeyUpAction {
     #[serde(rename = "type")]
     pub key_up_action_type: String,
@@ -247,7 +247,7 @@ impl KeyUpAction {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PointerUpAction {
     #[serde(rename = "type")]
     pub pointer_up_action_type: String,
@@ -263,7 +263,7 @@ impl PointerUpAction {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PointerDownAction {
     #[serde(rename = "type")]
     pub pointer_down_action_type: String,
@@ -282,7 +282,7 @@ impl PointerDownAction {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PointerMoveAction {
     #[serde(rename = "type")]
     pub pointer_move_action_type: String,
@@ -315,7 +315,7 @@ impl PointerMoveAction {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct WheelScrollAction {
     #[serde(rename = "type")]
     pub wheel_scroll_action_type: String,
@@ -352,7 +352,7 @@ impl WheelScrollAction {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PointerCommonProperties {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub width: Option<JsUint>,
@@ -392,7 +392,7 @@ impl PointerCommonProperties {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum Origin {
     Viewport(String),
@@ -400,7 +400,7 @@ pub enum Origin {
     ElementOrigin(ElementOrigin),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ReleaseActions {
     pub method: String,
     pub params: ReleaseActionsParameters,
@@ -415,7 +415,7 @@ impl ReleaseActions {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ReleaseActionsParameters {
     pub context: BrowsingContext,
 }
@@ -426,7 +426,7 @@ impl ReleaseActionsParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetFiles {
     pub method: String,
     pub params: SetFilesParameters,
@@ -441,7 +441,7 @@ impl SetFiles {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetFilesParameters {
     pub context: BrowsingContext,
     pub element: SharedReference,
@@ -458,7 +458,7 @@ impl SetFilesParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct FileDialogOpened {
     pub method: String,
     pub params: FileDialogInfo,
@@ -473,7 +473,7 @@ impl FileDialogOpened {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct FileDialogInfo {
     pub context: BrowsingContext,
     #[serde(rename = "userContext", skip_serializing_if = "Option::is_none")]

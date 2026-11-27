@@ -5,7 +5,7 @@ use crate::model::browsing_context::{BrowsingContext, Navigation};
 use crate::model::common::{Extensible, JsInt, JsUint};
 use crate::model::script::StackTrace;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum NetworkCommand {
     AddDataCollector(AddDataCollector),
@@ -23,7 +23,7 @@ pub enum NetworkCommand {
     SetExtraHeaders(SetExtraHeaders),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum NetworkResult {
     AddDataCollectorResult(AddDataCollectorResult),
@@ -31,7 +31,7 @@ pub enum NetworkResult {
     GetDataResult(GetDataResult),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum NetworkEvent {
     AuthRequired(AuthRequired),
@@ -41,13 +41,13 @@ pub enum NetworkEvent {
     ResponseStarted(ResponseStarted),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AuthChallenge {
     pub scheme: String,
     pub realm: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct AuthCredentials {
     #[serde(rename = "type")]
     pub auth_credentials_type: String,
@@ -65,7 +65,7 @@ impl AuthCredentials {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct BaseParameters {
     pub context: Option<BrowsingContext>,
     #[serde(rename = "isBlocked")]
@@ -85,14 +85,14 @@ pub struct BaseParameters {
     pub intercepts: Option<Vec<Intercept>>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum BytesValue {
     StringValue(StringValue),
     Base64Value(Base64Value),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct StringValue {
     #[serde(
         rename = "type",
@@ -102,7 +102,7 @@ pub struct StringValue {
     pub value: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Base64Value {
     #[serde(
         rename = "type",
@@ -115,7 +115,7 @@ pub struct Base64Value {
 pub type Collector = String;
 pub type CollectorType = String;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum SameSite {
     Strict,
@@ -124,7 +124,7 @@ pub enum SameSite {
     Default,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Cookie {
     pub name: String,
     pub value: BytesValue,
@@ -142,7 +142,7 @@ pub struct Cookie {
     pub extensible: Extensible,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct CookieHeader {
     pub name: String,
     pub value: BytesValue,
@@ -157,7 +157,7 @@ impl CookieHeader {
 /// `"request"` or `"response"`.
 pub type DataType = String;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct FetchTimingInfo {
     #[serde(rename = "timeOrigin")]
     pub time_origin: f64,
@@ -185,9 +185,12 @@ pub struct FetchTimingInfo {
     pub response_start: f64,
     #[serde(rename = "responseEnd")]
     pub response_end: f64,
+    /// Fields outside the spec, e.g. vendor extensions such as `tlsEnd`.
+    #[serde(flatten, default)]
+    pub extensible: Extensible,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Header {
     pub name: String,
     pub value: BytesValue,
@@ -199,7 +202,7 @@ impl Header {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Initiator {
     #[serde(rename = "columnNumber", skip_serializing_if = "Option::is_none")]
     pub column_number: Option<JsUint>,
@@ -216,7 +219,7 @@ pub struct Initiator {
 pub type Intercept = String;
 pub type Request = String;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct RequestData {
     pub request: Request,
     pub url: String,
@@ -231,14 +234,17 @@ pub struct RequestData {
     #[serde(rename = "initiatorType")]
     pub initiator_type: Option<String>,
     pub timings: FetchTimingInfo,
+    /// Fields outside the spec, e.g. vendor extensions such as `goog:resourceType`.
+    #[serde(flatten, default)]
+    pub extensible: Extensible,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ResponseContent {
     pub size: JsUint,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ResponseData {
     pub url: String,
     pub protocol: String,
@@ -265,7 +271,7 @@ pub struct ResponseData {
     pub auth_challenges: Option<Vec<AuthChallenge>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetCookieHeader {
     pub name: String,
     pub value: BytesValue,
@@ -286,6 +292,10 @@ pub struct SetCookieHeader {
 }
 
 impl SetCookieHeader {
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "one argument per spec parameter; struct literals are the alternative"
+    )]
     pub fn new(
         name: String,
         value: BytesValue,
@@ -311,14 +321,14 @@ impl SetCookieHeader {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum UrlPattern {
     UrlPatternPattern(UrlPatternPattern),
     UrlPatternString(UrlPatternString),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct UrlPatternPattern {
     #[serde(rename = "type")]
     pub url_pattern_pattern_type: String,
@@ -353,7 +363,7 @@ impl UrlPatternPattern {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct UrlPatternString {
     #[serde(rename = "type")]
     pub url_pattern_string_type: String,
@@ -369,7 +379,7 @@ impl UrlPatternString {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct AddDataCollector {
     pub method: String,
     pub params: AddDataCollectorParameters,
@@ -384,7 +394,7 @@ impl AddDataCollector {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct AddDataCollectorParameters {
     #[serde(rename = "dataTypes")]
     pub data_types: Vec<DataType>,
@@ -402,12 +412,12 @@ pub struct AddDataCollectorParameters {
     pub user_contexts: Option<Vec<UserContext>>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AddDataCollectorResult {
     pub collector: Collector,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct AddIntercept {
     pub method: String,
     pub params: AddInterceptParameters,
@@ -422,7 +432,7 @@ impl AddIntercept {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct AddInterceptParameters {
     pub phases: Vec<InterceptPhase>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -445,7 +455,7 @@ impl AddInterceptParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum InterceptPhase {
     #[serde(rename = "beforeRequestSent")]
     BeforeRequestSent,
@@ -455,12 +465,12 @@ pub enum InterceptPhase {
     AuthRequired,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AddInterceptResult {
     pub intercept: Intercept,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ContinueRequest {
     pub method: String,
     pub params: ContinueRequestParameters,
@@ -475,7 +485,7 @@ impl ContinueRequest {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ContinueRequestParameters {
     pub request: Request,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -510,7 +520,7 @@ impl ContinueRequestParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ContinueResponse {
     pub method: String,
     pub params: ContinueResponseParameters,
@@ -525,7 +535,7 @@ impl ContinueResponse {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ContinueResponseParameters {
     pub request: Request,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -560,7 +570,7 @@ impl ContinueResponseParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ContinueWithAuth {
     pub method: String,
     pub params: ContinueWithAuthParameters,
@@ -575,7 +585,7 @@ impl ContinueWithAuth {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ContinueWithAuthParameters {
     pub request: Request,
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
@@ -591,14 +601,14 @@ impl ContinueWithAuthParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum ContinueWithAuthOption {
     Credentials(ContinueWithAuthCredentials),
     NoCredentials(ContinueWithAuthNoCredentials),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ContinueWithAuthCredentials {
     pub action: String,
     pub credentials: AuthCredentials,
@@ -613,7 +623,7 @@ impl ContinueWithAuthCredentials {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ContinueWithAuthNoCredentials {
     pub action: NoCredentialsAction,
 }
@@ -624,14 +634,14 @@ impl ContinueWithAuthNoCredentials {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum NoCredentialsAction {
     Default,
     Cancel,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct DisownData {
     pub method: String,
     pub params: DisownDataParameters,
@@ -646,7 +656,7 @@ impl DisownData {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct DisownDataParameters {
     #[serde(rename = "dataType")]
     pub data_type: DataType,
@@ -654,7 +664,7 @@ pub struct DisownDataParameters {
     pub request: Request,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct FailRequest {
     pub method: String,
     pub params: FailRequestParameters,
@@ -669,7 +679,7 @@ impl FailRequest {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct FailRequestParameters {
     pub request: Request,
 }
@@ -680,7 +690,7 @@ impl FailRequestParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct GetData {
     pub method: String,
     pub params: GetDataParameters,
@@ -695,7 +705,7 @@ impl GetData {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct GetDataParameters {
     #[serde(rename = "dataType")]
     pub data_type: DataType,
@@ -706,12 +716,12 @@ pub struct GetDataParameters {
     pub request: Request,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct GetDataResult {
     pub bytes: BytesValue,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ProvideResponse {
     pub method: String,
     pub params: ProvideResponseParameters,
@@ -726,7 +736,7 @@ impl ProvideResponse {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ProvideResponseParameters {
     pub request: Request,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -761,7 +771,7 @@ impl ProvideResponseParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct RemoveDataCollector {
     pub method: String,
     pub params: RemoveDataCollectorParameters,
@@ -776,12 +786,12 @@ impl RemoveDataCollector {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct RemoveDataCollectorParameters {
     pub collector: Collector,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct RemoveIntercept {
     pub method: String,
     pub params: RemoveInterceptParameters,
@@ -796,7 +806,7 @@ impl RemoveIntercept {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct RemoveInterceptParameters {
     pub intercept: Intercept,
 }
@@ -807,7 +817,7 @@ impl RemoveInterceptParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetCacheBehavior {
     pub method: String,
     pub params: SetCacheBehaviorParameters,
@@ -822,7 +832,7 @@ impl SetCacheBehavior {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetCacheBehaviorParameters {
     #[serde(rename = "cacheBehavior")]
     pub cache_behavior: CacheBehavior,
@@ -839,33 +849,33 @@ impl SetCacheBehaviorParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum CacheBehavior {
     Default,
     Bypass,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AuthRequired {
     pub method: String,
     pub params: AuthRequiredParameters,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct AuthRequiredParameters {
     #[serde(flatten)]
     pub base: BaseParameters,
     pub response: ResponseData,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct BeforeRequestSent {
     pub method: String,
     pub params: BeforeRequestSentParameters,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct BeforeRequestSentParameters {
     #[serde(flatten)]
     pub base: BaseParameters,
@@ -873,13 +883,13 @@ pub struct BeforeRequestSentParameters {
     pub initiator: Option<Initiator>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct FetchError {
     pub method: String,
     pub params: FetchErrorParameters,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct FetchErrorParameters {
     #[serde(flatten)]
     pub base: BaseParameters,
@@ -887,33 +897,33 @@ pub struct FetchErrorParameters {
     pub error_text: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ResponseCompleted {
     pub method: String,
     pub params: ResponseCompletedParameters,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ResponseCompletedParameters {
     #[serde(flatten)]
     pub base: BaseParameters,
     pub response: ResponseData,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ResponseStarted {
     pub method: String,
     pub params: ResponseStartedParameters,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ResponseStartedParameters {
     #[serde(flatten)]
     pub base: BaseParameters,
     pub response: ResponseData,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetExtraHeaders {
     pub method: String,
     pub params: SetExtraHeadersParameters,
@@ -928,7 +938,7 @@ impl SetExtraHeaders {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetExtraHeadersParameters {
     pub headers: Vec<Header>,
     #[serde(skip_serializing_if = "Option::is_none")]
