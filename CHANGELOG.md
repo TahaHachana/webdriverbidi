@@ -5,7 +5,12 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/) (while below 1.0, a
 minor version bump may contain breaking changes).
 
-## [Unreleased]
+## [0.5.0] - 2026-11-27
+
+Matches the WebDriver BiDi specification at
+[w3c/webdriver-bidi@5931e50](https://github.com/w3c/webdriver-bidi/commit/5931e506984a03207b8c1e9829643cb9aa6b6b15),
+as 0.4.0 does. Every command and event is now tested live against Chrome and Firefox,
+and the bugs those tests found are fixed below.
 
 ### Added
 
@@ -170,5 +175,6 @@ Synced with the WebDriver BiDi specification at
 - Completed downloads (`browsingContext.downloadEnd`) parsed as canceled, losing `filepath`.
 - Proxy configurations and realm infos could parse as the wrong variant.
 
+[0.5.0]: https://github.com/TahaHachana/webdriverbidi/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/TahaHachana/webdriverbidi/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/TahaHachana/webdriverbidi/compare/62216c8...v0.3.0
