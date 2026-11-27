@@ -12,10 +12,27 @@ minor version bump may contain breaking changes).
 - `WebDriverBiDiSession::set_message_observer`, with `MessageObserver` and
   `MessageDirection`: a callback that sees every message sent to and received from the
   remote end as raw JSON, e.g. for logging or recording traffic.
+- Typed errors: `CommandError::error_response()` and `CommandError::error_code()` return
+  the remote end's `ErrorResponse` / `ErrorCode`, and the error displays as
+  ``Command returned error `<code>`: <message>``. `ErrorResponse` fields are public, and
+  `ErrorCode` has `as_str()` and `Display`.
+- `ErrorCode::Other(String)` keeps codes the crate doesn't know, so an unknown code no
+  longer makes an `ErrorResponse` fail to parse.
+- `CommandError::ConnectionClosed`, returned when the connection closes before a command is
+  sent or answered.
+- All model types implement `Clone` and `PartialEq`.
+- `network::RequestData`, `network::FetchTimingInfo`, `script::StackFrame` and
+  `session::StatusResult` keep fields outside the spec (vendor extensions such as Chrome's
+  `goog:resourceType`) in a flattened `extensible` map instead of dropping them.
 
 ### Changed (breaking)
 
-- `ErrorCode` has a new variant, `NoSuchClientWindow`, which breaks exhaustive `match`es.
+- `ErrorCode` has new variants, `NoSuchClientWindow` and `Other(String)`; it no longer
+  derives `Serialize`/`Deserialize` but implements them (same JSON), and is
+  `#[non_exhaustive]`.
+- `CommandError` is `#[non_exhaustive]`; `OneshotReceiverError` is replaced by
+  `ConnectionClosed`, and `WebSocketSendError` now holds a `Box<tungstenite::Error>`.
+- The four types above have a new public `extensible` field, which breaks struct literals.
 - `WebDriverBiDiSession::websocket_stream` is removed. The connection is now split into
   a write half, used to send commands, and a read half, owned by the task that receives
   messages; both are private. Use `send_command` to send raw commands and
@@ -27,8 +44,7 @@ minor version bump may contain breaking changes).
   using a full CPU core for as long as the session existed and continuing after the
   connection closed. It now waits for messages and stops when the connection ends.
 - A command waiting for its response when the connection closed waited for the
-  60-second response timeout; it now fails immediately.
-
+  60-second response timeout; it now fails immediately with `ConnectionClosed`.
 - `ErrorCode` lacked `no such client window`, which the spec's prose defines (its CDDL list
   omits it) and Firefox returns for `browser.setClientWindowState` on an unknown window, so
   such error responses failed to parse as `ErrorResponse`.
