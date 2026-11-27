@@ -818,6 +818,9 @@ pub struct StackFrame {
     #[serde(rename = "lineNumber")]
     pub line_number: JsUint,
     pub url: String,
+    /// Fields outside the spec, e.g. vendor extensions such as `scriptId`.
+    #[serde(flatten, default)]
+    pub extensible: Extensible,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]

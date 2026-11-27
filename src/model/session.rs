@@ -234,6 +234,9 @@ impl Status {
 pub struct StatusResult {
     pub ready: bool,
     pub message: String,
+    /// Fields outside the spec, e.g. vendor extensions such as `build`.
+    #[serde(flatten, default)]
+    pub extensible: Extensible,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -356,4 +359,19 @@ impl Unsubscribe {
 pub enum UnsubscribeParameters {
     UnsubscribeByAttributesRequest(UnsubscribeByAttributesRequest),
     UnsubscribeByIDRequest(UnsubscribeByIDRequest),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn status_result_keeps_vendor_fields() {
+        // chromedriver adds `build` and `os` to session.status.
+        let raw = json!({ "ready": true, "message": "ok", "build": { "version": "158" } });
+        let status: StatusResult = serde_json::from_value(raw.clone()).unwrap();
+        assert_eq!(status.extensible["build"], json!({ "version": "158" }));
+        assert_eq!(serde_json::to_value(&status).unwrap(), raw);
+    }
 }

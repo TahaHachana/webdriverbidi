@@ -185,6 +185,9 @@ pub struct FetchTimingInfo {
     pub response_start: f64,
     #[serde(rename = "responseEnd")]
     pub response_end: f64,
+    /// Fields outside the spec, e.g. vendor extensions such as `tlsEnd`.
+    #[serde(flatten, default)]
+    pub extensible: Extensible,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -231,6 +234,9 @@ pub struct RequestData {
     #[serde(rename = "initiatorType")]
     pub initiator_type: Option<String>,
     pub timings: FetchTimingInfo,
+    /// Fields outside the spec, e.g. vendor extensions such as `goog:resourceType`.
+    #[serde(flatten, default)]
+    pub extensible: Extensible,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
