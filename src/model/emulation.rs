@@ -178,14 +178,14 @@ impl SetScreenOrientationOverride {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase", untagged)]
+#[serde(rename_all = "lowercase")]
 pub enum ScreenOrientationNatural {
     Portrait,
     Landscape,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case", untagged)]
+#[serde(rename_all = "kebab-case")]
 pub enum ScreenOrientationType {
     PortraitPrimary,
     PortraitSecondary,

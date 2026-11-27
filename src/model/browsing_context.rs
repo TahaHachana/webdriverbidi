@@ -558,7 +558,7 @@ pub struct HandleUserPromptParameters {
     pub context: BrowsingContext,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub accept: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "userText", skip_serializing_if = "Option::is_none")]
     pub user_text: Option<String>,
 }
 
@@ -1137,6 +1137,7 @@ pub enum DownloadEndParams {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DownloadCanceledParams {
+    #[serde(deserialize_with = "crate::model::common::tag::canceled")]
     pub status: String,
     pub download: Download,
     #[serde(flatten)]
@@ -1145,6 +1146,7 @@ pub struct DownloadCanceledParams {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DownloadCompleteParams {
+    #[serde(deserialize_with = "crate::model::common::tag::complete")]
     pub status: String,
     pub download: Download,
     pub filepath: Option<String>,

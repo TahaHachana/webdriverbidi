@@ -230,7 +230,8 @@ impl SetClientWindowState {
 pub struct SetClientWindowStateParameters {
     #[serde(rename = "clientWindow")]
     pub client_window: ClientWindow,
-    #[serde(rename = "clientWindowNamedState")]
+    /// Flattened into the parameters: the spec has no wrapper key here.
+    #[serde(flatten)]
     pub client_window_named_state: ClientWindowNamedOrRectState,
 }
 

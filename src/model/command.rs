@@ -15,7 +15,9 @@ use crate::model::web_extension::WebExtensionCommand;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Command {
     pub id: JsUint,
+    #[serde(flatten)]
     pub command_data: CommandData,
+    #[serde(flatten)]
     pub extensible: Extensible,
 }
 

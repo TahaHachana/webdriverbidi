@@ -38,7 +38,10 @@ pub type Channel = String;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ChannelValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::channel"
+    )]
     pub value_type: String,
     pub value: ChannelProperties,
 }
@@ -132,14 +135,14 @@ pub type ListLocalValue = Vec<LocalValue>;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ArrayLocalValue {
-    #[serde(rename = "type")]
+    #[serde(rename = "type", deserialize_with = "crate::model::common::tag::array")]
     pub value_type: String,
     pub value: ListLocalValue,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DateLocalValue {
-    #[serde(rename = "type")]
+    #[serde(rename = "type", deserialize_with = "crate::model::common::tag::date")]
     pub value_type: String,
     pub value: String,
 }
@@ -156,14 +159,17 @@ pub enum LocalValueOrText {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MapLocalValue {
-    #[serde(rename = "type")]
+    #[serde(rename = "type", deserialize_with = "crate::model::common::tag::map")]
     pub value_type: String,
     pub value: MappingLocalValue,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ObjectLocalValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::object"
+    )]
     pub value_type: String,
     pub value: MappingLocalValue,
 }
@@ -177,14 +183,17 @@ pub struct RegExpValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RegExpLocalValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::regexp"
+    )]
     pub value_type: String,
     pub value: RegExpValue,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SetLocalValue {
-    #[serde(rename = "type")]
+    #[serde(rename = "type", deserialize_with = "crate::model::common::tag::set")]
     pub value_type: String,
     pub value: ListLocalValue,
 }
@@ -206,19 +215,25 @@ pub enum PrimitiveProtocolValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UndefinedValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::undefined"
+    )]
     pub value_type: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NullValue {
-    #[serde(rename = "type")]
+    #[serde(rename = "type", deserialize_with = "crate::model::common::tag::null")]
     pub value_type: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct StringValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::string"
+    )]
     pub value_type: String,
     pub value: String,
 }
@@ -244,7 +259,10 @@ pub enum SpecialNumber {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NumberValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::number"
+    )]
     pub value_type: String,
     pub value: NumberOrSpecialNumber,
 }
@@ -258,14 +276,20 @@ pub enum NumberOrSpecialNumber {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BooleanValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::boolean"
+    )]
     pub value_type: String,
     pub value: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BigIntValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::bigint"
+    )]
     pub value_type: String,
     pub value: String,
 }
@@ -293,7 +317,10 @@ pub struct BaseRealmInfo {
 pub struct WindowRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::window"
+    )]
     pub realm_type: String,
     pub context: BrowsingContext,
     #[serde(rename = "userContext", skip_serializing_if = "Option::is_none")]
@@ -306,7 +333,10 @@ pub struct WindowRealmInfo {
 pub struct DedicatedWorkerRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::dedicated_worker"
+    )]
     pub realm_type: String,
     pub owners: Vec<Realm>,
 }
@@ -315,7 +345,10 @@ pub struct DedicatedWorkerRealmInfo {
 pub struct SharedWorkerRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::shared_worker"
+    )]
     pub realm_type: String,
 }
 
@@ -323,7 +356,10 @@ pub struct SharedWorkerRealmInfo {
 pub struct ServiceWorkerRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::service_worker"
+    )]
     pub realm_type: String,
 }
 
@@ -331,7 +367,10 @@ pub struct ServiceWorkerRealmInfo {
 pub struct WorkerRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::worker"
+    )]
     pub realm_type: String,
 }
 
@@ -339,7 +378,10 @@ pub struct WorkerRealmInfo {
 pub struct PaintWorkletRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::paint_worklet"
+    )]
     pub realm_type: String,
 }
 
@@ -347,7 +389,10 @@ pub struct PaintWorkletRealmInfo {
 pub struct AudioWorkletRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::audio_worklet"
+    )]
     pub realm_type: String,
 }
 
@@ -355,7 +400,10 @@ pub struct AudioWorkletRealmInfo {
 pub struct WorkletRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::worklet"
+    )]
     pub realm_type: String,
 }
 
@@ -444,7 +492,10 @@ pub enum RemoteValueOrText {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SymbolRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::symbol"
+    )]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -454,7 +505,7 @@ pub struct SymbolRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ArrayRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(rename = "type", deserialize_with = "crate::model::common::tag::array")]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -466,7 +517,10 @@ pub struct ArrayRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ObjectRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::object"
+    )]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -478,7 +532,10 @@ pub struct ObjectRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FunctionRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::function"
+    )]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -508,7 +565,7 @@ pub struct DateRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MapRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(rename = "type", deserialize_with = "crate::model::common::tag::map")]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -520,7 +577,7 @@ pub struct MapRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SetRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(rename = "type", deserialize_with = "crate::model::common::tag::set")]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -532,7 +589,10 @@ pub struct SetRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WeakMapRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::weakmap"
+    )]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -542,7 +602,10 @@ pub struct WeakMapRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WeakSetRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::weakset"
+    )]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -552,7 +615,10 @@ pub struct WeakSetRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GeneratorRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::generator"
+    )]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -562,7 +628,7 @@ pub struct GeneratorRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ErrorRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(rename = "type", deserialize_with = "crate::model::common::tag::error")]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -572,7 +638,7 @@ pub struct ErrorRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ProxyRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(rename = "type", deserialize_with = "crate::model::common::tag::proxy")]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -582,7 +648,10 @@ pub struct ProxyRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PromiseRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::promise"
+    )]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -592,7 +661,10 @@ pub struct PromiseRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TypedArrayRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::typedarray"
+    )]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -602,7 +674,10 @@ pub struct TypedArrayRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ArrayBufferRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::arraybuffer"
+    )]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -612,7 +687,10 @@ pub struct ArrayBufferRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NodeListRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::nodelist"
+    )]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -624,7 +702,10 @@ pub struct NodeListRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct HTMLCollectionRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::htmlcollection"
+    )]
     pub value_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<Handle>,
@@ -636,7 +717,7 @@ pub struct HTMLCollectionRemoteValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NodeRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(rename = "type", deserialize_with = "crate::model::common::tag::node")]
     pub value_type: String,
     #[serde(rename = "sharedId", skip_serializing_if = "Option::is_none")]
     pub shared_id: Option<SharedId>,
@@ -684,7 +765,10 @@ pub enum NodePropertiesMode {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WindowProxyRemoteValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::window"
+    )]
     pub value_type: String,
     pub value: WindowProxyProperties,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -69,7 +69,10 @@ pub enum ProxyConfiguration {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AutodetectProxyConfiguration {
-    #[serde(rename = "proxyType")]
+    #[serde(
+        rename = "proxyType",
+        deserialize_with = "crate::model::common::tag::autodetect"
+    )]
     pub proxy_type: String,
     #[serde(flatten)]
     pub extensible: Extensible,
@@ -77,7 +80,10 @@ pub struct AutodetectProxyConfiguration {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DirectProxyConfiguration {
-    #[serde(rename = "proxyType")]
+    #[serde(
+        rename = "proxyType",
+        deserialize_with = "crate::model::common::tag::direct"
+    )]
     pub proxy_type: String,
     #[serde(flatten)]
     pub extensible: Extensible,
@@ -85,7 +91,10 @@ pub struct DirectProxyConfiguration {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ManualProxyConfiguration {
-    #[serde(rename = "proxyType")]
+    #[serde(
+        rename = "proxyType",
+        deserialize_with = "crate::model::common::tag::manual"
+    )]
     pub proxy_type: String,
     #[serde(rename = "httpProxy", skip_serializing_if = "Option::is_none")]
     pub http_proxy: Option<String>,
@@ -109,7 +118,10 @@ pub struct SocksProxyConfiguration {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PacProxyConfiguration {
-    #[serde(rename = "proxyType")]
+    #[serde(
+        rename = "proxyType",
+        deserialize_with = "crate::model::common::tag::pac"
+    )]
     pub proxy_type: String,
     #[serde(rename = "proxyAutoconfigUrl")]
     pub proxy_autoconfig_url: String,
@@ -119,7 +131,10 @@ pub struct PacProxyConfiguration {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SystemProxyConfiguration {
-    #[serde(rename = "proxyType")]
+    #[serde(
+        rename = "proxyType",
+        deserialize_with = "crate::model::common::tag::system"
+    )]
     pub proxy_type: String,
     #[serde(flatten)]
     pub extensible: Extensible,

@@ -86,6 +86,7 @@ pub struct BaseParameters {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
 pub enum BytesValue {
     StringValue(StringValue),
     Base64Value(Base64Value),
@@ -93,14 +94,20 @@ pub enum BytesValue {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct StringValue {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::string"
+    )]
     pub value_type: String,
     pub value: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Base64Value {
-    #[serde(rename = "type")]
+    #[serde(
+        rename = "type",
+        deserialize_with = "crate::model::common::tag::base64"
+    )]
     pub value_type: String,
     pub value: String,
 }
@@ -416,7 +423,7 @@ pub struct AddInterceptParameters {
     pub phases: Vec<InterceptPhase>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub contexts: Option<Vec<BrowsingContext>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "urlPatterns", skip_serializing_if = "Option::is_none")]
     pub url_patterns: Option<Vec<UrlPattern>>,
 }
 
@@ -813,6 +820,7 @@ impl SetCacheBehavior {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SetCacheBehaviorParameters {
+    #[serde(rename = "cacheBehavior")]
     pub cache_behavior: CacheBehavior,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub contexts: Option<Vec<BrowsingContext>>,
