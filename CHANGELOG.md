@@ -29,10 +29,14 @@ Synced with the WebDriver BiDi specification at
     `UserPromptOpenedParameters`, `UserPromptClosedParameters`, `browsing_context::CreateResult`,
     `script::WindowRealmInfo`, `script::Source`, `input::FileDialogInfo` and
     `network::BaseParameters`;
-  - `download` on `DownloadWillBeginParams`, `DownloadCanceledParams` and
+  - an optional `download` on `DownloadWillBeginParams`, `DownloadCanceledParams` and
     `DownloadCompleteParams`;
   - `image_size` on `CaptureScreenshotParameters`;
   - `has_planned_navigation` on `browsingContext.contextCreated` (see `ContextCreatedParameters`).
+
+  Fields the spec added recently are `Option`s even where the spec requires them
+  (`download`, `has_planned_navigation`), because browsers lag the spec: Chrome 158 doesn't
+  send `hasPlannedNavigation` yet.
 - `ErrorCode::NoSuchScreencast`.
 - `input::FileDialogInfo` fields are now public.
 - `EmptyParams` implements `Default`.
