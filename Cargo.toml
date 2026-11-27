@@ -1,6 +1,6 @@
 [package]
 name = "webdriverbidi"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2024"
 authors = ["Taha Hachana <tahahachana@gmail.com>"]
 description = "WebDriver BiDi client implementation in Rust."

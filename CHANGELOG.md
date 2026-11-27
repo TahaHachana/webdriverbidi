@@ -5,6 +5,21 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/) (while below 1.0, a
 minor version bump may contain breaking changes).
 
+## [0.4.0] - 2026-11-27
+
+### Changed (breaking)
+
+- `ContextCreatedParameters::has_planned_navigation` is now `Option<bool>`, and `download` on
+  `DownloadWillBeginParams`, `DownloadCanceledParams` and `DownloadCompleteParams` is now
+  `Option<Download>`. Both fields are recent additions to the spec, and browsers don't send
+  them yet; `None` means the browser didn't report the value.
+
+### Fixed
+
+- `browsingContext.contextCreated` events from Chrome 158 failed to parse, because Chrome
+  doesn't send `hasPlannedNavigation` yet. Download events from browsers that don't send
+  `download` failed the same way. 0.3.0 users should upgrade.
+
 ## [0.3.0] - 2026-11-27
 
 Synced with the WebDriver BiDi specification at
@@ -29,14 +44,10 @@ Synced with the WebDriver BiDi specification at
     `UserPromptOpenedParameters`, `UserPromptClosedParameters`, `browsing_context::CreateResult`,
     `script::WindowRealmInfo`, `script::Source`, `input::FileDialogInfo` and
     `network::BaseParameters`;
-  - an optional `download` on `DownloadWillBeginParams`, `DownloadCanceledParams` and
+  - `download` on `DownloadWillBeginParams`, `DownloadCanceledParams` and
     `DownloadCompleteParams`;
   - `image_size` on `CaptureScreenshotParameters`;
   - `has_planned_navigation` on `browsingContext.contextCreated` (see `ContextCreatedParameters`).
-
-  Fields the spec added recently are `Option`s even where the spec requires them
-  (`download`, `has_planned_navigation`), because browsers lag the spec: Chrome 158 doesn't
-  send `hasPlannedNavigation` yet.
 - `ErrorCode::NoSuchScreencast`.
 - `input::FileDialogInfo` fields are now public.
 - `EmptyParams` implements `Default`.
@@ -110,4 +121,5 @@ Synced with the WebDriver BiDi specification at
 - Completed downloads (`browsingContext.downloadEnd`) parsed as canceled, losing `filepath`.
 - Proxy configurations and realm infos could parse as the wrong variant.
 
+[0.4.0]: https://github.com/TahaHachana/webdriverbidi/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/TahaHachana/webdriverbidi/compare/62216c8...v0.3.0

@@ -23,7 +23,7 @@ Add the following to your `Cargo.toml` (the example below will also require toki
 
 ```toml
 [dependencies]
-webdriverbidi = "0.3.0"
+webdriverbidi = "0.4.0"
 ```
 
 ### Usage
