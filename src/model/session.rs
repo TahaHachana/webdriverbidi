@@ -22,6 +22,9 @@ pub enum SessionResult {
     SubscribeResult(SubscribeResult),
 }
 
+pub type EndResult = crate::model::result::EmptyResult;
+pub type UnsubscribeResult = crate::model::result::EmptyResult;
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CapabilitiesRequest {
     #[serde(rename = "alwaysMatch", skip_serializing_if = "Option::is_none")]
@@ -146,9 +149,10 @@ pub enum UserPromptHandlerType {
     Ignore,
 }
 
-type Subscription = String;
+pub type Subscription = String;
+
 #[derive(Debug, Serialize, Deserialize)]
-pub struct SubscriptionRequest {
+pub struct SubscribeParameters {
     pub events: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub contexts: Option<Vec<BrowsingContext>>,
@@ -156,7 +160,11 @@ pub struct SubscriptionRequest {
     pub user_contexts: Option<Vec<UserContext>>,
 }
 
-impl SubscriptionRequest {
+/// Former name of [`SubscribeParameters`].
+#[deprecated(since = "0.3.0", note = "renamed to `SubscribeParameters` in the spec")]
+pub type SubscriptionRequest = SubscribeParameters;
+
+impl SubscribeParameters {
     pub fn new(
         events: Vec<String>,
         contexts: Option<Vec<BrowsingContext>>,
@@ -184,13 +192,11 @@ impl UnsubscribeByIDRequest {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UnsubscribeByAttributesRequest {
     pub events: Vec<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub contexts: Option<Vec<BrowsingContext>>,
 }
 
 impl UnsubscribeByAttributesRequest {
-    pub fn new(events: Vec<String>, contexts: Option<Vec<BrowsingContext>>) -> Self {
-        Self { events, contexts }
+    pub fn new(events: Vec<String>) -> Self {
+        Self { events }
     }
 }
 
@@ -243,12 +249,17 @@ impl NewParameters {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NewResult {
+    #[serde(rename = "sessionId")]
     pub session_id: String,
-    pub capabilities: Capabilities,
+    pub capabilities: CapabilityResponse,
 }
 
+/// Former name of [`CapabilityResponse`].
+#[deprecated(since = "0.3.0", note = "renamed to `CapabilityResponse` in the spec")]
+pub type Capabilities = CapabilityResponse;
+
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Capabilities {
+pub struct CapabilityResponse {
     #[serde(rename = "acceptInsecureCerts")]
     pub accept_insecure_certs: bool,
     #[serde(rename = "browserName")]
@@ -292,11 +303,11 @@ impl End {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Subscribe {
     pub method: String,
-    pub params: SubscriptionRequest,
+    pub params: SubscribeParameters,
 }
 
 impl Subscribe {
-    pub fn new(params: SubscriptionRequest) -> Self {
+    pub fn new(params: SubscribeParameters) -> Self {
         Self {
             method: "session.subscribe".to_string(),
             params,

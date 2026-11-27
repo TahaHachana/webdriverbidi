@@ -1,3 +1,4 @@
+use crate::model::browser::UserContext;
 use crate::model::browsing_context::BrowsingContext;
 use crate::model::common::{JsInt, JsUint};
 use crate::model::script::SharedReference;
@@ -16,6 +17,9 @@ pub enum InputCommand {
 pub enum InputEvent {
     FileDialogOpened(FileDialogOpened),
 }
+
+/// All input commands return an empty result.
+pub type InputResult = crate::model::result::EmptyResult;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ElementOrigin {
@@ -470,8 +474,25 @@ impl FileDialogOpened {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileDialogInfo {
-    context: BrowsingContext,
+    pub context: BrowsingContext,
+    #[serde(rename = "userContext", skip_serializing_if = "Option::is_none")]
+    pub user_context: Option<UserContext>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    element: Option<SharedReference>,
-    multiple: bool,
+    pub element: Option<SharedReference>,
+    pub multiple: bool,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn pointer_common_properties_omit_unset_fields() {
+        let props = PointerCommonProperties::new(None, None, Some(0.5), None, None, None, None);
+        assert_eq!(
+            serde_json::to_value(&props).unwrap(),
+            json!({"pressure": 0.5})
+        );
+    }
 }

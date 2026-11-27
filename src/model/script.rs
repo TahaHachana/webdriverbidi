@@ -22,7 +22,7 @@ pub enum ScriptCommand {
 #[serde(untagged)]
 pub enum ScriptResult {
     AddPreloadScriptResult(AddPreloadScriptResult),
-    EvaluateResult(EvaluateResult),
+    EvaluationResult(EvaluationResult),
     GetRealmsResult(GetRealmsResult),
 }
 
@@ -57,14 +57,32 @@ pub struct ChannelProperties {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
-pub enum EvaluateResult {
-    EvaluateResultSuccess(EvaluateResultSuccess),
-    EvaluateResultException(EvaluateResultException),
+pub enum EvaluationResult {
+    EvaluationResultSuccess(EvaluationResultSuccess),
+    EvaluationResultException(EvaluationResultException),
     EmptyResult(EmptyResult),
 }
 
+/// `script.EvaluateResult` is an alias of `script.EvaluationResult` in the spec.
+pub type EvaluateResult = EvaluationResult;
+/// `script.CallFunctionResult` is an alias of `script.EvaluationResult` in the spec.
+pub type CallFunctionResult = EvaluationResult;
+
+/// Former name of [`EvaluationResultSuccess`].
+#[deprecated(
+    since = "0.3.0",
+    note = "renamed to `EvaluationResultSuccess` in the spec"
+)]
+pub type EvaluateResultSuccess = EvaluationResultSuccess;
+/// Former name of [`EvaluationResultException`].
+#[deprecated(
+    since = "0.3.0",
+    note = "renamed to `EvaluationResultException` in the spec"
+)]
+pub type EvaluateResultException = EvaluationResultException;
+
 #[derive(Serialize, Deserialize, Debug)]
-pub struct EvaluateResultSuccess {
+pub struct EvaluationResultSuccess {
     #[serde(rename = "type")]
     pub result_type: String,
     pub result: RemoteValue,
@@ -72,7 +90,7 @@ pub struct EvaluateResultSuccess {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct EvaluateResultException {
+pub struct EvaluationResultException {
     #[serde(rename = "type")]
     pub result_type: String,
     #[serde(rename = "exceptionDetails")]
@@ -278,6 +296,8 @@ pub struct WindowRealmInfo {
     #[serde(rename = "type")]
     pub realm_type: String,
     pub context: BrowsingContext,
+    #[serde(rename = "userContext", skip_serializing_if = "Option::is_none")]
+    pub user_context: Option<UserContext>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sandbox: Option<String>,
 }
@@ -727,6 +747,8 @@ pub struct Source {
     pub realm: Realm,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<BrowsingContext>,
+    #[serde(rename = "userContext", skip_serializing_if = "Option::is_none")]
+    pub user_context: Option<UserContext>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -1042,4 +1064,20 @@ pub struct RealmDestroyed {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RealmDestroyedParameters {
     pub realm: Realm,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn evaluation_result_success() {
+        let raw = json!({"type": "success", "result": {"type": "undefined"}, "realm": "r"});
+        let rslt: EvaluateResult = serde_json::from_value(raw).unwrap();
+        match rslt {
+            EvaluationResult::EvaluationResultSuccess(s) => assert_eq!(s.realm, "r"),
+            other => panic!("unexpected: {other:?}"),
+        }
+    }
 }

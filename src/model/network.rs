@@ -20,11 +20,15 @@ pub enum NetworkCommand {
     RemoveDataCollector(RemoveDataCollector),
     RemoveIntercept(RemoveIntercept),
     SetCacheBehavior(SetCacheBehavior),
+    SetExtraHeaders(SetExtraHeaders),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
 pub enum NetworkResult {
+    AddDataCollectorResult(AddDataCollectorResult),
     AddInterceptResult(AddInterceptResult),
+    GetDataResult(GetDataResult),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -64,11 +68,19 @@ impl AuthCredentials {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BaseParameters {
     pub context: Option<BrowsingContext>,
+    #[serde(rename = "isBlocked")]
     pub is_blocked: bool,
     pub navigation: Option<Navigation>,
+    #[serde(rename = "redirectCount")]
     pub redirect_count: JsUint,
     pub request: RequestData,
     pub timestamp: JsUint,
+    #[serde(
+        rename = "userContext",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub user_context: Option<UserContext>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub intercepts: Option<Vec<Intercept>>,
 }
@@ -135,6 +147,7 @@ impl CookieHeader {
     }
 }
 
+/// `"request"` or `"response"`.
 pub type DataType = String;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -910,4 +923,55 @@ pub struct SetExtraHeadersParameters {
     pub contexts: Option<Vec<BrowsingContext>>,
     #[serde(rename = "userContexts", skip_serializing_if = "Option::is_none")]
     pub user_contexts: Option<Vec<UserContext>>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn base_parameters_deserialize_camel_case() {
+        let timings: serde_json::Map<String, serde_json::Value> = [
+            "timeOrigin",
+            "requestTime",
+            "redirectStart",
+            "redirectEnd",
+            "fetchStart",
+            "dnsStart",
+            "dnsEnd",
+            "connectStart",
+            "connectEnd",
+            "tlsStart",
+            "requestStart",
+            "responseStart",
+            "responseEnd",
+        ]
+        .iter()
+        .map(|k| (k.to_string(), json!(0.0)))
+        .collect();
+        let raw = json!({
+            "context": "c",
+            "isBlocked": false,
+            "navigation": null,
+            "redirectCount": 2,
+            "request": {
+                "request": "r1",
+                "url": "https://example.com/",
+                "method": "GET",
+                "headers": [],
+                "cookies": [],
+                "headersSize": 0,
+                "bodySize": null,
+                "destination": "",
+                "initiatorType": null,
+                "timings": timings
+            },
+            "timestamp": 1,
+            "userContext": "default"
+        });
+        let params: BaseParameters = serde_json::from_value(raw).unwrap();
+        assert_eq!(params.redirect_count, 2);
+        assert_eq!(params.user_context.as_deref(), Some("default"));
+    }
 }

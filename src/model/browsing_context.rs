@@ -18,7 +18,10 @@ pub enum BrowsingContextCommand {
     Navigate(Navigate),
     Print(Print),
     Reload(Reload),
+    SetBypassCSP(SetBypassCSP),
     SetViewport(SetViewport),
+    StartScreencast(StartScreencast),
+    StopScreencast(StopScreencast),
     TraverseHistory(TraverseHistory),
 }
 
@@ -31,6 +34,8 @@ pub enum BrowsingContextResult {
     LocateNodesResult(LocateNodesResult),
     NavigateResult(NavigateResult),
     PrintResult(PrintResult),
+    StartScreencastResult(StartScreencastResult),
+    StopScreencastResult(StopScreencastResult),
     TraverseHistoryResult(TraverseHistoryResult),
 }
 
@@ -56,6 +61,9 @@ pub enum BrowsingContextEvent {
 pub type BrowsingContext = String;
 
 pub type InfoList = Vec<Info>;
+
+/// `browsingContext.BaseInfo`: the fields shared by `Info` and `ContextCreatedParameters`.
+pub type BaseInfo = Info;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Info {
@@ -210,12 +218,16 @@ impl XPathLocator {
 
 pub type Navigation = String;
 
+pub type Download = String;
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BaseNavigationInfo {
     pub context: BrowsingContext,
     pub navigation: Option<Navigation>,
     pub timestamp: JsUint,
     pub url: String,
+    #[serde(rename = "userContext", skip_serializing_if = "Option::is_none")]
+    pub user_context: Option<UserContext>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -291,6 +303,8 @@ pub struct CaptureScreenshotParameters {
     pub format: Option<ImageFormat>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub clip: Option<ClipRectangle>,
+    #[serde(rename = "imageSize", skip_serializing_if = "Option::is_none")]
+    pub image_size: Option<ImageSize>,
 }
 
 impl CaptureScreenshotParameters {
@@ -299,12 +313,31 @@ impl CaptureScreenshotParameters {
         origin: Option<CaptureScreenshotParametersOrigin>,
         format: Option<ImageFormat>,
         clip: Option<ClipRectangle>,
+        image_size: Option<ImageSize>,
     ) -> Self {
         Self {
             context,
             origin,
             format,
             clip,
+            image_size,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ImageSize {
+    #[serde(rename = "maxWidth", skip_serializing_if = "Option::is_none")]
+    pub max_width: Option<JsUint>, // >= 1
+    #[serde(rename = "maxHeight", skip_serializing_if = "Option::is_none")]
+    pub max_height: Option<JsUint>, // >= 1
+}
+
+impl ImageSize {
+    pub fn new(max_width: Option<JsUint>, max_height: Option<JsUint>) -> Self {
+        Self {
+            max_width,
+            max_height,
         }
     }
 }
@@ -467,6 +500,8 @@ impl CreateParameters {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateResult {
     pub context: BrowsingContext,
+    #[serde(rename = "userContext", skip_serializing_if = "Option::is_none")]
+    pub user_context: Option<UserContext>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -867,10 +902,164 @@ impl TraverseHistoryParameters {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TraverseHistoryResult {}
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SetBypassCSP {
+    pub method: String,
+    pub params: SetBypassCSPParameters,
+}
+
+impl SetBypassCSP {
+    pub fn new(params: SetBypassCSPParameters) -> Self {
+        Self {
+            method: "browsingContext.setBypassCSP".into(),
+            params,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SetBypassCSPParameters {
+    /// `Some(true)` bypasses CSP, `None` restores the default behavior.
+    pub bypass: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contexts: Option<Vec<BrowsingContext>>,
+    #[serde(rename = "userContexts", skip_serializing_if = "Option::is_none")]
+    pub user_contexts: Option<Vec<UserContext>>,
+}
+
+impl SetBypassCSPParameters {
+    pub fn new(
+        bypass: Option<bool>,
+        contexts: Option<Vec<BrowsingContext>>,
+        user_contexts: Option<Vec<UserContext>>,
+    ) -> Self {
+        Self {
+            bypass,
+            contexts,
+            user_contexts,
+        }
+    }
+}
+
+pub type Screencast = String;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StartScreencast {
+    pub method: String,
+    pub params: StartScreencastParameters,
+}
+
+impl StartScreencast {
+    pub fn new(params: StartScreencastParameters) -> Self {
+        Self {
+            method: "browsingContext.startScreencast".into(),
+            params,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StartScreencastParameters {
+    pub context: BrowsingContext,
+    #[serde(rename = "destinationFolder", skip_serializing_if = "Option::is_none")]
+    pub destination_folder: Option<String>,
+    #[serde(rename = "mimeType", skip_serializing_if = "Option::is_none")]
+    pub mime_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub video: Option<MediaTrackConstraints>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio: Option<bool>,
+}
+
+impl StartScreencastParameters {
+    pub fn new(
+        context: BrowsingContext,
+        destination_folder: Option<String>,
+        mime_type: Option<String>,
+        video: Option<MediaTrackConstraints>,
+        audio: Option<bool>,
+    ) -> Self {
+        Self {
+            context,
+            destination_folder,
+            mime_type,
+            video,
+            audio,
+        }
+    }
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct MediaTrackConstraints {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub width: Option<JsUint>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub height: Option<JsUint>,
+    #[serde(rename = "frameRate", skip_serializing_if = "Option::is_none")]
+    pub frame_rate: Option<JsUint>,
+}
+
+impl MediaTrackConstraints {
+    pub fn new(width: Option<JsUint>, height: Option<JsUint>, frame_rate: Option<JsUint>) -> Self {
+        Self {
+            width,
+            height,
+            frame_rate,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StartScreencastResult {
+    pub screencast: Screencast,
+    pub path: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StopScreencast {
+    pub method: String,
+    pub params: StopScreencastParameters,
+}
+
+impl StopScreencast {
+    pub fn new(params: StopScreencastParameters) -> Self {
+        Self {
+            method: "browsingContext.stopScreencast".into(),
+            params,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StopScreencastParameters {
+    pub screencast: Screencast,
+}
+
+impl StopScreencastParameters {
+    pub fn new(screencast: Screencast) -> Self {
+        Self { screencast }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StopScreencastResult {
+    pub path: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ContextCreated {
     pub method: String,
-    pub params: Info,
+    pub params: ContextCreatedParameters,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ContextCreatedParameters {
+    #[serde(flatten)]
+    pub info: BaseInfo,
+    #[serde(rename = "hasPlannedNavigation")]
+    pub has_planned_navigation: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -902,6 +1091,8 @@ pub struct HistoryUpdatedParameters {
     pub context: BrowsingContext,
     pub timestamp: JsUint,
     pub url: String,
+    #[serde(rename = "userContext", skip_serializing_if = "Option::is_none")]
+    pub user_context: Option<UserContext>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -924,6 +1115,7 @@ pub struct DownloadWillBegin {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DownloadWillBeginParams {
+    pub download: Download,
     #[serde(rename = "suggestedFilename")]
     pub suggested_filename: String,
     #[serde(flatten)]
@@ -946,6 +1138,7 @@ pub enum DownloadEndParams {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DownloadCanceledParams {
     pub status: String,
+    pub download: Download,
     #[serde(flatten)]
     pub base: BaseNavigationInfo,
 }
@@ -953,6 +1146,7 @@ pub struct DownloadCanceledParams {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DownloadCompleteParams {
     pub status: String,
+    pub download: Download,
     pub filepath: Option<String>,
     #[serde(flatten)]
     pub base: BaseNavigationInfo,
@@ -988,6 +1182,8 @@ pub struct UserPromptClosedParameters {
     pub accepted: bool,
     #[serde(rename = "type")]
     pub prompt_type: UserPromptType,
+    #[serde(rename = "userContext", skip_serializing_if = "Option::is_none")]
+    pub user_context: Option<UserContext>,
     #[serde(rename = "userText", skip_serializing_if = "Option::is_none")]
     pub user_text: Option<String>,
 }
@@ -1005,6 +1201,59 @@ pub struct UserPromptOpenedParameters {
     pub message: String,
     #[serde(rename = "type")]
     pub prompt_type: UserPromptType,
+    #[serde(rename = "userContext", skip_serializing_if = "Option::is_none")]
+    pub user_context: Option<UserContext>,
     #[serde(rename = "defaultValue", skip_serializing_if = "Option::is_none")]
     pub default_value: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn context_created_parameters_flatten_base_info() {
+        let raw = json!({
+            "children": null,
+            "clientWindow": "w1",
+            "context": "c1",
+            "originalOpener": null,
+            "url": "about:blank",
+            "userContext": "default",
+            "hasPlannedNavigation": true
+        });
+        let params: ContextCreatedParameters = serde_json::from_value(raw).unwrap();
+        assert_eq!(params.info.context, "c1");
+        assert_eq!(params.info.user_context, "default");
+        assert!(params.has_planned_navigation);
+    }
+
+    #[test]
+    fn navigation_info_optional_user_context() {
+        let raw = json!({"context": "c", "navigation": null, "timestamp": 1, "url": "u"});
+        let info: NavigationInfo = serde_json::from_value(raw).unwrap();
+        assert!(info.base.user_context.is_none());
+    }
+
+    #[test]
+    fn capture_screenshot_image_size() {
+        let p = CaptureScreenshotParameters::new(
+            "c".into(),
+            None,
+            None,
+            None,
+            Some(ImageSize::new(Some(100), None)),
+        );
+        assert_eq!(
+            serde_json::to_value(&p).unwrap(),
+            json!({"context": "c", "imageSize": {"maxWidth": 100}})
+        );
+    }
+
+    #[test]
+    fn set_bypass_csp_reset_serializes_null() {
+        let p = SetBypassCSPParameters::new(None, None, None);
+        assert_eq!(serde_json::to_value(&p).unwrap(), json!({"bypass": null}));
+    }
 }

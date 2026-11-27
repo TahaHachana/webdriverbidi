@@ -23,12 +23,14 @@ Add the following to your `Cargo.toml` (the example below will also require toki
 
 ```toml
 [dependencies]
-webdriverbidi = "0.2.2"
+webdriverbidi = "0.3.0"
 ```
 
 ### Usage
 
-Start a WebDriver BiDi compliant server
+Start a WebDriver BiDi compliant server. To get a chromedriver that matches your installed Chrome, run
+`scripts/install-chromedriver.sh` (installs into the git-ignored `drivers/` directory; see `--help` for
+`--channel`, `--version` and `--dir`).
 
 ```bash
 $ geckodriver --host=localhost --port=4444
@@ -105,11 +107,12 @@ async fn main() -> Result<()> {
 #### Types
 - [x] session.CapabilitiesRequest
 - [x] session.CapabilityRequest
+- [x] session.CapabilityResponse
 - [x] session.ProxyConfiguration
 - [x] session.UserPromptHandler
 - [x] session.UserPromptHandlerType
 - [x] session.Subscription
-- [x] session.SubscriptionRequest
+- [x] session.SubscribeParameters
 - [x] session.UnsubscribeByIDRequest
 - [x] session.UnsubscribeByAttributesRequest
 
@@ -124,6 +127,7 @@ async fn main() -> Result<()> {
 #### Types
 - [x] browser.ClientWindow
 - [x] browser.ClientWindowInfo
+- [x] browser.DownloadBehavior
 - [x] browser.UserContext
 - [x] browser.UserContextInfo
 
@@ -134,15 +138,19 @@ async fn main() -> Result<()> {
 - [x] browser.getUserContexts
 - [x] browser.removeUserContext
 - [x] browser.setClientWindowState
+- [x] browser.setDownloadBehavior
 
 ### browsingContext
 #### Types
 - [x] browsingContext.BrowsingContext
+- [x] browsingContext.BaseInfo
+- [x] browsingContext.Download
 - [x] browsingContext.Info
 - [x] browsingContext.Locator
 - [x] browsingContext.Navigation
 - [x] browsingContext.NavigationInfo
 - [x] browsingContext.ReadinessState
+- [x] browsingContext.Screencast
 - [x] browsingContext.UserPromptType
 
 #### Commands
@@ -156,7 +164,10 @@ async fn main() -> Result<()> {
 - [x] browsingContext.navigate
 - [x] browsingContext.print
 - [x] browsingContext.reload
+- [x] browsingContext.setBypassCSP
 - [x] browsingContext.setViewport
+- [x] browsingContext.startScreencast
+- [x] browsingContext.stopScreencast
 - [x] browsingContext.traverseHistory
 
 #### Events
@@ -177,10 +188,20 @@ async fn main() -> Result<()> {
 
 ### emulation
 #### Commands
+- [x] emulation.setForcedColorsModeThemeOverride
 - [x] emulation.setGeolocationOverride
 - [x] emulation.setLocaleOverride
+- [x] emulation.setMediaFeaturesOverride
+- [x] emulation.setNetworkConditions
 - [x] emulation.setScreenOrientationOverride
+- [x] emulation.setScreenSettingsOverride
+- [x] emulation.setScriptingEnabled
+- [x] emulation.setScrollbarTypeOverride
+- [x] emulation.setTextLayoutModeOverride
 - [x] emulation.setTimezoneOverride
+- [x] emulation.setTouchOverride
+- [x] emulation.setUserAgentOverride
+- [x] emulation.setViewportMetaOverride
 
 ### network
 #### Types
@@ -210,7 +231,7 @@ async fn main() -> Result<()> {
 - [x] network.continueRequest
 - [x] network.continueResponse
 - [x] network.continueWithAuth
-- [x] The network.disownData
+- [x] network.disownData
 - [x] network.failRequest
 - [x] network.getData
 - [x] network.provideResponse
@@ -230,7 +251,7 @@ async fn main() -> Result<()> {
 #### Types
 - [x] script.Channel
 - [x] script.ChannelValue
-- [x] script.EvaluateResult
+- [x] script.EvaluationResult
 - [x] script.ExceptionDetails
 - [x] script.Handle
 - [x] script.InternalId
@@ -288,6 +309,9 @@ async fn main() -> Result<()> {
 - [x] input.releaseActions
 - [x] input.setFiles
 
+#### Events
+- [x] input.fileDialogOpened
+
 ### webExtension
 #### Types
 - [x] webExtension.Extension
@@ -295,6 +319,27 @@ async fn main() -> Result<()> {
 #### Commands
 - [x] webExtension.install
 - [x] webExtension.uninstall
+
+## Updating the CDDL
+
+The `cddl/` directory holds the CDDL definitions extracted from the
+[WebDriver BiDi spec](https://github.com/w3c/webdriver-bidi). To refresh them (requires `git` and `python3`):
+
+```bash
+scripts/update-cddl.sh          # latest main
+scripts/update-cddl.sh <ref>    # a specific branch or tag
+```
+
+Then review `git diff cddl/` and update `src/model`, `src/commands`, `src/session.rs` and this README to match.
+
+## Releasing
+
+```bash
+scripts/publish.sh --dry-run    # run every check and `cargo publish --dry-run`
+scripts/publish.sh              # publish to crates.io, then tag and push vX.Y.Z
+```
+
+Bump `version` in `Cargo.toml` and the version in the installation snippet above first. You must be logged in to crates.io (`cargo login`).
 
 ## Contributing
 

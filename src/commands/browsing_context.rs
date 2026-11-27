@@ -104,3 +104,30 @@ define_command!(
     traverse_history,
     TraverseHistoryResult
 );
+
+// https://w3c.github.io/webdriver-bidi/#command-browsingContext-setBypassCSP
+define_command!(
+    SetBypassCSPCommand,
+    SetBypassCSP,
+    SetBypassCSPParameters,
+    set_bypass_csp,
+    EmptyResult
+);
+
+// https://w3c.github.io/webdriver-bidi/#command-browsingContext-startScreencast
+define_command!(
+    StartScreencastCommand,
+    StartScreencast,
+    StartScreencastParameters,
+    start_screencast,
+    StartScreencastResult
+);
+
+// https://w3c.github.io/webdriver-bidi/#command-browsingContext-stopScreencast
+define_command!(
+    StopScreencastCommand,
+    StopScreencast,
+    StopScreencastParameters,
+    stop_screencast,
+    StopScreencastResult
+);
