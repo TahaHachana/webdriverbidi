@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum WebExtensionCommand {
     Install(Install),
     Uninstall(Uninstall),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum WebExtensionResult {
     InstallResult(InstallResult),
@@ -15,7 +15,7 @@ pub enum WebExtensionResult {
 
 pub type Extension = String;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Install {
     pub method: String,
     pub params: InstallParameters,
@@ -30,7 +30,7 @@ impl Install {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct InstallParameters {
     #[serde(rename = "extensionData")]
     pub extension_data: ExtensionData,
@@ -42,7 +42,7 @@ impl InstallParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum ExtensionData {
     ExtensionArchivePath(ExtensionArchivePath),
@@ -50,7 +50,7 @@ pub enum ExtensionData {
     ExtensionPath(ExtensionPath),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ExtensionPath {
     #[serde(rename = "type")]
     pub extension_path_type: String,
@@ -66,7 +66,7 @@ impl ExtensionPath {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ExtensionArchivePath {
     #[serde(rename = "type")]
     pub extension_archive_path_type: String,
@@ -82,7 +82,7 @@ impl ExtensionArchivePath {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ExtensionBase64Encoded {
     #[serde(rename = "type")]
     pub extension_base64_encoded_type: String,
@@ -98,12 +98,12 @@ impl ExtensionBase64Encoded {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct InstallResult {
     pub extension: Extension,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Uninstall {
     pub method: String,
     pub params: UninstallParameters,
@@ -118,7 +118,7 @@ impl Uninstall {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct UninstallParameters {
     pub extension: Extension,
 }

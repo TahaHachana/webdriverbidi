@@ -3,13 +3,13 @@ use serde::{Deserialize, Serialize};
 use crate::model::common::JsUint;
 use crate::model::script::{RemoteValue, Source, StackTrace};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum LogEvent {
     EntryAdded(EntryAdded),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum Level {
     Debug,
@@ -18,7 +18,7 @@ pub enum Level {
     Error,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum Entry {
     // Order matters: `GenericLogEntry` accepts any `type`, so it must come last.
@@ -27,7 +27,7 @@ pub enum Entry {
     GenericLogEntry(GenericLogEntry),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct BaseLogEntry {
     pub level: Level,
     pub source: Source,
@@ -37,7 +37,7 @@ pub struct BaseLogEntry {
     pub stack_trace: Option<StackTrace>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GenericLogEntry {
     #[serde(flatten)]
     pub base: BaseLogEntry,
@@ -45,7 +45,7 @@ pub struct GenericLogEntry {
     pub log_type: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ConsoleLogEntry {
     #[serde(flatten)]
     pub base: BaseLogEntry,
@@ -58,7 +58,7 @@ pub struct ConsoleLogEntry {
     pub args: Vec<RemoteValue>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct JavascriptLogEntry {
     #[serde(flatten)]
     pub base: BaseLogEntry,
@@ -69,7 +69,7 @@ pub struct JavascriptLogEntry {
     pub log_type: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct EntryAdded {
     pub method: String,
     pub params: Entry,

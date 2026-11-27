@@ -4,7 +4,7 @@ use crate::model::browser::UserContext;
 use crate::model::browsing_context::BrowsingContext;
 use crate::model::common::JsUint;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum EmulationCommand {
     SetForcedColorsModeThemeOverride(SetForcedColorsModeThemeOverride),
@@ -26,7 +26,7 @@ pub enum EmulationCommand {
 /// All emulation commands return an empty result.
 pub type EmulationResult = crate::model::result::EmptyResult;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetGeolocationOverride {
     pub method: String,
     pub params: SetGeolocationOverrideParameters,
@@ -41,7 +41,7 @@ impl SetGeolocationOverride {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum SetGeolocationOverrideParameters {
     WithCoordinates {
@@ -86,7 +86,7 @@ impl SetGeolocationOverrideParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct GeolocationCoordinates {
     pub latitude: f64,
     pub longitude: f64,
@@ -125,7 +125,7 @@ impl GeolocationCoordinates {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct GeolocationPositionError {
     #[serde(rename = "type")]
     pub error_type: String,
@@ -139,7 +139,7 @@ impl GeolocationPositionError {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetLocaleOverride {
     pub method: String,
     pub params: SetLocaleOverrideParameters,
@@ -153,7 +153,7 @@ impl SetLocaleOverride {
         }
     }
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetLocaleOverrideParameters {
     pub locale: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -162,7 +162,7 @@ pub struct SetLocaleOverrideParameters {
     pub user_contexts: Option<Vec<UserContext>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetScreenOrientationOverride {
     pub method: String,
     pub params: SetScreenOrientationOverrideParameters,
@@ -177,14 +177,14 @@ impl SetScreenOrientationOverride {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum ScreenOrientationNatural {
     Portrait,
     Landscape,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 pub enum ScreenOrientationType {
     PortraitPrimary,
@@ -193,14 +193,14 @@ pub enum ScreenOrientationType {
     LandscapeSecondary,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ScreenOrientation {
     pub natural: ScreenOrientationNatural,
     #[serde(rename = "type")]
     pub orientation_type: ScreenOrientationType,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetScreenOrientationOverrideParameters {
     #[serde(rename = "screenOrientation")]
     pub screen_orientation: Option<ScreenOrientation>,
@@ -210,7 +210,7 @@ pub struct SetScreenOrientationOverrideParameters {
     pub user_contexts: Option<Vec<UserContext>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetTimezoneOverride {
     pub method: String,
     pub params: SetTimezoneOverrideParameters,
@@ -225,7 +225,7 @@ impl SetTimezoneOverride {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetTimezoneOverrideParameters {
     pub timezone: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -234,7 +234,7 @@ pub struct SetTimezoneOverrideParameters {
     pub user_contexts: Option<Vec<UserContext>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetForcedColorsModeThemeOverride {
     pub method: String,
     pub params: SetForcedColorsModeThemeOverrideParameters,
@@ -249,7 +249,7 @@ impl SetForcedColorsModeThemeOverride {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetForcedColorsModeThemeOverrideParameters {
     /// `None` clears the override.
     pub theme: Option<ForcedColorsModeTheme>,
@@ -273,7 +273,7 @@ impl SetForcedColorsModeThemeOverrideParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetMediaFeaturesOverride {
     pub method: String,
     pub params: SetMediaFeaturesOverrideParameters,
@@ -288,7 +288,7 @@ impl SetMediaFeaturesOverride {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetMediaFeaturesOverrideParameters {
     /// `None` clears the override.
     pub features: Option<MediaFeatures>,
@@ -312,7 +312,7 @@ impl SetMediaFeaturesOverrideParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetNetworkConditions {
     pub method: String,
     pub params: SetNetworkConditionsParameters,
@@ -327,7 +327,7 @@ impl SetNetworkConditions {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetNetworkConditionsParameters {
     /// `None` clears the override.
     #[serde(rename = "networkConditions")]
@@ -352,7 +352,7 @@ impl SetNetworkConditionsParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetScreenSettingsOverride {
     pub method: String,
     pub params: SetScreenSettingsOverrideParameters,
@@ -367,7 +367,7 @@ impl SetScreenSettingsOverride {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetScreenSettingsOverrideParameters {
     /// `None` clears the override.
     #[serde(rename = "screenArea")]
@@ -392,7 +392,7 @@ impl SetScreenSettingsOverrideParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetScriptingEnabled {
     pub method: String,
     pub params: SetScriptingEnabledParameters,
@@ -407,7 +407,7 @@ impl SetScriptingEnabled {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetScriptingEnabledParameters {
     /// `Some(ScriptingEnabled::Disabled)` disables scripting; `None` restores the default.
     pub enabled: Option<ScriptingEnabled>,
@@ -431,7 +431,7 @@ impl SetScriptingEnabledParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetScrollbarTypeOverride {
     pub method: String,
     pub params: SetScrollbarTypeOverrideParameters,
@@ -446,7 +446,7 @@ impl SetScrollbarTypeOverride {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetScrollbarTypeOverrideParameters {
     /// `None` clears the override.
     #[serde(rename = "scrollbarType")]
@@ -471,7 +471,7 @@ impl SetScrollbarTypeOverrideParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetTextLayoutModeOverride {
     pub method: String,
     pub params: SetTextLayoutModeOverrideParameters,
@@ -486,7 +486,7 @@ impl SetTextLayoutModeOverride {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetTextLayoutModeOverrideParameters {
     /// `None` clears the override.
     #[serde(rename = "textLayoutMode")]
@@ -511,7 +511,7 @@ impl SetTextLayoutModeOverrideParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetTouchOverride {
     pub method: String,
     pub params: SetTouchOverrideParameters,
@@ -526,7 +526,7 @@ impl SetTouchOverride {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetTouchOverrideParameters {
     /// Maximum touch points (>= 1); `None` clears the override.
     #[serde(rename = "maxTouchPoints")]
@@ -551,7 +551,7 @@ impl SetTouchOverrideParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetUserAgentOverride {
     pub method: String,
     pub params: SetUserAgentOverrideParameters,
@@ -566,7 +566,7 @@ impl SetUserAgentOverride {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetUserAgentOverrideParameters {
     /// `None` clears the override.
     #[serde(rename = "userAgent")]
@@ -591,7 +591,7 @@ impl SetUserAgentOverrideParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetViewportMetaOverride {
     pub method: String,
     pub params: SetViewportMetaOverrideParameters,
@@ -606,7 +606,7 @@ impl SetViewportMetaOverride {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetViewportMetaOverrideParameters {
     /// `Some(ViewportMeta::Enabled)` enables `<meta name=viewport>` handling; `None` clears the override.
     #[serde(rename = "viewportMeta")]
@@ -645,7 +645,7 @@ pub enum NetworkConditions {
     Offline,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ScreenArea {
     pub width: JsUint,
     pub height: JsUint,
@@ -717,7 +717,7 @@ pub enum TextLayoutMode {
 ///
 /// Each field is `Option<Option<T>>`: the outer `None` omits the feature, `Some(None)`
 /// sends `null` (reset that feature), `Some(Some(v))` overrides it.
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
 pub struct MediaFeatures {
     #[serde(rename = "any-hover", default, skip_serializing_if = "Option::is_none")]
     pub any_hover: Option<Option<Hover>>,

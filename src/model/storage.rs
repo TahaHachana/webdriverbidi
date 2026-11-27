@@ -4,7 +4,7 @@ use crate::model::browsing_context::BrowsingContext;
 use crate::model::common::{Extensible, JsUint};
 use crate::model::network::{BytesValue, Cookie, SameSite};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum StorageCommand {
     DeleteCookies(DeleteCookies),
@@ -12,7 +12,7 @@ pub enum StorageCommand {
     SetCookie(SetCookie),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum StorageResult {
     DeleteCookiesResult(DeleteCookiesResult),
@@ -20,7 +20,7 @@ pub enum StorageResult {
     SetCookieResult(SetCookieResult),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PartitionKey {
     #[serde(rename = "userContext", skip_serializing_if = "Option::is_none")]
     pub user_context: Option<String>,
@@ -40,7 +40,7 @@ impl PartitionKey {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct GetCookies {
     pub method: String,
     pub params: GetCookiesParameters,
@@ -55,7 +55,7 @@ impl GetCookies {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct CookieFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -107,7 +107,7 @@ impl CookieFilter {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct BrowsingContextPartitionDescriptor {
     #[serde(rename = "type")]
     pub browsing_context_partition_descriptor_type: String,
@@ -123,7 +123,7 @@ impl BrowsingContextPartitionDescriptor {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct StorageKeyPartitionDescriptor {
     #[serde(rename = "type")]
     pub storage_key_partition_descriptor_type: String,
@@ -146,14 +146,14 @@ impl StorageKeyPartitionDescriptor {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum PartitionDescriptor {
     BrowsingContextPartitionDescriptor(BrowsingContextPartitionDescriptor),
     StorageKeyPartitionDescriptor(StorageKeyPartitionDescriptor),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct GetCookiesParameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filter: Option<CookieFilter>,
@@ -167,14 +167,14 @@ impl GetCookiesParameters {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetCookiesResult {
     pub cookies: Vec<Cookie>,
     #[serde(rename = "partitionKey")]
     pub partition_key: PartitionKey,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetCookie {
     pub method: String,
     pub params: SetCookieParameters,
@@ -189,7 +189,7 @@ impl SetCookie {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PartialCookie {
     pub name: String,
     pub value: BytesValue,
@@ -234,7 +234,7 @@ impl PartialCookie {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetCookieParameters {
     pub cookie: PartialCookie,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -247,13 +247,13 @@ impl SetCookieParameters {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct SetCookieResult {
     #[serde(rename = "partitionKey")]
     pub partition_key: PartitionKey,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct DeleteCookies {
     pub method: String,
     pub params: DeleteCookiesParameters,
@@ -268,7 +268,7 @@ impl DeleteCookies {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct DeleteCookiesParameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filter: Option<CookieFilter>,
@@ -282,7 +282,7 @@ impl DeleteCookiesParameters {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DeleteCookiesResult {
     #[serde(rename = "partitionKey")]
     pub partition_key: PartitionKey,

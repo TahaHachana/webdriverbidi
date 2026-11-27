@@ -5,7 +5,7 @@ use crate::model::common::{JsInt, JsUint};
 use crate::model::script::{NodeRemoteValue, SerializationOptions, SharedReference};
 use crate::model::session::UserPromptHandlerType;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum BrowsingContextCommand {
     Activate(Activate),
@@ -25,7 +25,7 @@ pub enum BrowsingContextCommand {
     TraverseHistory(TraverseHistory),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum BrowsingContextResult {
     CaptureScreenshotResult(CaptureScreenshotResult),
@@ -39,7 +39,7 @@ pub enum BrowsingContextResult {
     TraverseHistoryResult(TraverseHistoryResult),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum BrowsingContextEvent {
     ContextCreated(ContextCreated),
@@ -65,7 +65,7 @@ pub type InfoList = Vec<Info>;
 /// `browsingContext.BaseInfo`: the fields shared by `Info` and `ContextCreatedParameters`.
 pub type BaseInfo = Info;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Info {
     pub children: Option<InfoList>,
     #[serde(rename = "clientWindow", skip_serializing_if = "Option::is_none")]
@@ -80,7 +80,7 @@ pub struct Info {
     pub parent: Option<BrowsingContext>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum Locator {
     AccessibilityLocator(AccessibilityLocator),
@@ -90,7 +90,7 @@ pub enum Locator {
     XPathLocator(XPathLocator),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct AccessibilityLocator {
     #[serde(rename = "type")]
     pub locator_type: String,
@@ -106,7 +106,7 @@ impl AccessibilityLocator {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct AccessibilityLocatorValue {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -120,7 +120,7 @@ impl AccessibilityLocatorValue {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct CssLocator {
     #[serde(rename = "type")]
     pub locator_type: String,
@@ -136,7 +136,7 @@ impl CssLocator {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ContextLocator {
     #[serde(rename = "type")]
     pub locator_type: String,
@@ -152,7 +152,7 @@ impl ContextLocator {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ContextValue {
     pub context: BrowsingContext,
 }
@@ -163,7 +163,7 @@ impl ContextValue {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct InnerTextLocator {
     #[serde(rename = "type")]
     pub locator_type: String,
@@ -193,14 +193,14 @@ impl InnerTextLocator {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum InnerTextLocatorMatchType {
     Full,
     Partial,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct XPathLocator {
     #[serde(rename = "type")]
     pub locator_type: String,
@@ -220,7 +220,7 @@ pub type Navigation = String;
 
 pub type Download = String;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct BaseNavigationInfo {
     pub context: BrowsingContext,
     pub navigation: Option<Navigation>,
@@ -230,13 +230,13 @@ pub struct BaseNavigationInfo {
     pub user_context: Option<UserContext>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct NavigationInfo {
     #[serde(flatten)]
     pub base: BaseNavigationInfo,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum ReadinessState {
     Complete,
@@ -244,7 +244,7 @@ pub enum ReadinessState {
     None,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum UserPromptType {
     Alert,
@@ -253,7 +253,7 @@ pub enum UserPromptType {
     Prompt,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Activate {
     pub method: String,
     pub params: ActivateParameters,
@@ -268,7 +268,7 @@ impl Activate {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ActivateParameters {
     pub context: BrowsingContext,
 }
@@ -279,7 +279,7 @@ impl ActivateParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct CaptureScreenshot {
     pub method: String,
     pub params: CaptureScreenshotParameters,
@@ -294,7 +294,7 @@ impl CaptureScreenshot {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct CaptureScreenshotParameters {
     pub context: BrowsingContext,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -325,7 +325,7 @@ impl CaptureScreenshotParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ImageSize {
     #[serde(rename = "maxWidth", skip_serializing_if = "Option::is_none")]
     pub max_width: Option<JsUint>, // >= 1
@@ -342,14 +342,14 @@ impl ImageSize {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum CaptureScreenshotParametersOrigin {
     Document,
     Viewport,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ImageFormat {
     #[serde(rename = "type")]
     pub image_format_type: String,
@@ -366,14 +366,14 @@ impl ImageFormat {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum ClipRectangle {
     BoxClipRectangle(BoxClipRectangle),
     ElementClipRectangle(ElementClipRectangle),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ElementClipRectangle {
     #[serde(rename = "type")]
     pub clip_rectangle_type: String,
@@ -389,7 +389,7 @@ impl ElementClipRectangle {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct BoxClipRectangle {
     #[serde(rename = "type")]
     pub clip_rectangle_type: String,
@@ -411,12 +411,12 @@ impl BoxClipRectangle {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CaptureScreenshotResult {
     pub data: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Close {
     pub method: String,
     pub params: CloseParameters,
@@ -431,7 +431,7 @@ impl Close {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct CloseParameters {
     pub context: BrowsingContext,
     #[serde(rename = "promptUnload", skip_serializing_if = "Option::is_none")]
@@ -447,7 +447,7 @@ impl CloseParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Create {
     pub method: String,
     pub params: CreateParameters,
@@ -462,14 +462,14 @@ impl Create {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum CreateType {
     Tab,
     Window,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct CreateParameters {
     #[serde(rename = "type")]
     pub create_type: CreateType,
@@ -497,14 +497,14 @@ impl CreateParameters {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CreateResult {
     pub context: BrowsingContext,
     #[serde(rename = "userContext", skip_serializing_if = "Option::is_none")]
     pub user_context: Option<UserContext>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct GetTree {
     pub method: String,
     pub params: GetTreeParameters,
@@ -519,7 +519,7 @@ impl GetTree {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct GetTreeParameters {
     #[serde(rename = "maxDepth", skip_serializing_if = "Option::is_none")]
     pub max_depth: Option<JsUint>,
@@ -533,12 +533,12 @@ impl GetTreeParameters {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetTreeResult {
     pub contexts: InfoList,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct HandleUserPrompt {
     pub method: String,
     pub params: HandleUserPromptParameters,
@@ -553,7 +553,7 @@ impl HandleUserPrompt {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct HandleUserPromptParameters {
     pub context: BrowsingContext,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -572,7 +572,7 @@ impl HandleUserPromptParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct LocateNodes {
     pub method: String,
     pub params: LocateNodesParameters,
@@ -587,7 +587,7 @@ impl LocateNodes {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct LocateNodesParameters {
     pub context: BrowsingContext,
     pub locator: Locator,
@@ -620,12 +620,12 @@ impl LocateNodesParameters {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct LocateNodesResult {
     pub nodes: Vec<NodeRemoteValue>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Navigate {
     pub method: String, // "browsingContext.navigate"
     pub params: NavigateParameters,
@@ -640,7 +640,7 @@ impl Navigate {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct NavigateParameters {
     pub context: BrowsingContext,
     pub url: String,
@@ -654,13 +654,13 @@ impl NavigateParameters {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct NavigateResult {
     pub navigation: Option<Navigation>,
     pub url: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Print {
     pub method: String,
     pub params: PrintParameters,
@@ -675,7 +675,7 @@ impl Print {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PrintParameters {
     pub context: BrowsingContext,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -718,21 +718,21 @@ impl PrintParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum PrintParametersOrientation {
     Landscape,
     Portrait,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum JsUintOrText {
     JsUint(JsUint),
     Text(String),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PrintMarginParameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bottom: Option<f32>, // 0.0..
@@ -760,7 +760,7 @@ impl PrintMarginParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PrintPageParameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub height: Option<f32>, // 0.0352..
@@ -774,12 +774,12 @@ impl PrintPageParameters {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct PrintResult {
     pub data: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Reload {
     pub method: String,
     pub params: ReloadParameters,
@@ -794,7 +794,7 @@ impl Reload {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ReloadParameters {
     pub context: BrowsingContext,
     #[serde(rename = "ignoreCache", skip_serializing_if = "Option::is_none")]
@@ -817,7 +817,7 @@ impl ReloadParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetViewport {
     pub method: String,
     pub params: SetViewportParameters,
@@ -832,7 +832,7 @@ impl SetViewport {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetViewportParameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<BrowsingContext>,
@@ -860,7 +860,7 @@ impl SetViewportParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Viewport {
     pub width: JsUint,
     pub height: JsUint,
@@ -872,7 +872,7 @@ impl Viewport {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct TraverseHistory {
     pub method: String,
     pub params: TraverseHistoryParameters,
@@ -887,7 +887,7 @@ impl TraverseHistory {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct TraverseHistoryParameters {
     pub context: BrowsingContext,
     pub delta: JsInt,
@@ -899,10 +899,10 @@ impl TraverseHistoryParameters {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct TraverseHistoryResult {}
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetBypassCSP {
     pub method: String,
     pub params: SetBypassCSPParameters,
@@ -917,7 +917,7 @@ impl SetBypassCSP {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SetBypassCSPParameters {
     /// `Some(true)` bypasses CSP, `None` restores the default behavior.
     pub bypass: Option<bool>,
@@ -943,7 +943,7 @@ impl SetBypassCSPParameters {
 
 pub type Screencast = String;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct StartScreencast {
     pub method: String,
     pub params: StartScreencastParameters,
@@ -958,7 +958,7 @@ impl StartScreencast {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct StartScreencastParameters {
     pub context: BrowsingContext,
     #[serde(rename = "destinationFolder", skip_serializing_if = "Option::is_none")]
@@ -989,7 +989,7 @@ impl StartScreencastParameters {
     }
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
 pub struct MediaTrackConstraints {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub width: Option<JsUint>,
@@ -1009,13 +1009,13 @@ impl MediaTrackConstraints {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct StartScreencastResult {
     pub screencast: Screencast,
     pub path: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct StopScreencast {
     pub method: String,
     pub params: StopScreencastParameters,
@@ -1030,7 +1030,7 @@ impl StopScreencast {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct StopScreencastParameters {
     pub screencast: Screencast,
 }
@@ -1041,20 +1041,20 @@ impl StopScreencastParameters {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct StopScreencastResult {
     pub path: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ContextCreated {
     pub method: String,
     pub params: ContextCreatedParameters,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ContextCreatedParameters {
     #[serde(flatten)]
     pub info: BaseInfo,
@@ -1067,31 +1067,31 @@ pub struct ContextCreatedParameters {
     pub has_planned_navigation: Option<bool>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ContextDestroyed {
     pub method: String,
     pub params: Info,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct NavigationStarted {
     pub method: String,
     pub params: NavigationInfo,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct FragmentNavigated {
     pub method: String,
     pub params: NavigationInfo,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct HistoryUpdated {
     pub method: String,
     pub params: HistoryUpdatedParameters,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct HistoryUpdatedParameters {
     pub context: BrowsingContext,
     pub timestamp: JsUint,
@@ -1100,25 +1100,25 @@ pub struct HistoryUpdatedParameters {
     pub user_context: Option<UserContext>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DomContentLoaded {
     pub method: String,
     pub params: NavigationInfo,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Load {
     pub method: String,
     pub params: NavigationInfo,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DownloadWillBegin {
     pub method: String,
     pub params: DownloadWillBeginParams,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DownloadWillBeginParams {
     /// `None` when the browser predates this field.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1129,20 +1129,20 @@ pub struct DownloadWillBeginParams {
     pub base: BaseNavigationInfo,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DownloadEnd {
     pub method: String,
     pub params: DownloadEndParams,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum DownloadEndParams {
     DownloadCanceled(DownloadCanceledParams),
     DownloadComplete(DownloadCompleteParams),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DownloadCanceledParams {
     #[serde(deserialize_with = "crate::model::common::tag::canceled")]
     pub status: String,
@@ -1153,7 +1153,7 @@ pub struct DownloadCanceledParams {
     pub base: BaseNavigationInfo,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DownloadCompleteParams {
     #[serde(deserialize_with = "crate::model::common::tag::complete")]
     pub status: String,
@@ -1165,31 +1165,31 @@ pub struct DownloadCompleteParams {
     pub base: BaseNavigationInfo,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct NavigationAborted {
     pub method: String,
     pub params: NavigationInfo,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct NavigationCommitted {
     pub method: String,
     pub params: NavigationInfo,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct NavigationFailed {
     pub method: String,
     pub params: NavigationInfo,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct UserPromptClosed {
     pub method: String,
     pub params: UserPromptClosedParameters,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct UserPromptClosedParameters {
     pub context: BrowsingContext,
     pub accepted: bool,
@@ -1201,13 +1201,13 @@ pub struct UserPromptClosedParameters {
     pub user_text: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct UserPromptOpened {
     pub method: String,
     pub params: UserPromptOpenedParameters,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct UserPromptOpenedParameters {
     pub context: BrowsingContext,
     pub handler: UserPromptHandlerType,

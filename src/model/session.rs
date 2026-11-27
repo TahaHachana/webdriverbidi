@@ -4,7 +4,7 @@ use crate::model::browser::UserContext;
 use crate::model::browsing_context::BrowsingContext;
 use crate::model::common::{EmptyParams, Extensible};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum SessionCommand {
     End(End),
@@ -14,7 +14,7 @@ pub enum SessionCommand {
     Unsubscribe(Unsubscribe),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum SessionResult {
     NewResult(NewResult),
@@ -25,7 +25,7 @@ pub enum SessionResult {
 pub type EndResult = crate::model::result::EmptyResult;
 pub type UnsubscribeResult = crate::model::result::EmptyResult;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CapabilitiesRequest {
     #[serde(rename = "alwaysMatch", skip_serializing_if = "Option::is_none")]
     pub always_match: Option<CapabilityRequest>,
@@ -33,7 +33,7 @@ pub struct CapabilitiesRequest {
     pub first_match: Option<Vec<CapabilityRequest>>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CapabilityRequest {
     #[serde(
         rename = "acceptInsecureCerts",
@@ -57,7 +57,7 @@ pub struct CapabilityRequest {
     pub extensible: Extensible,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum ProxyConfiguration {
     AutodetectProxyConfiguration(AutodetectProxyConfiguration),
@@ -67,7 +67,7 @@ pub enum ProxyConfiguration {
     SystemProxyConfiguration(SystemProxyConfiguration),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AutodetectProxyConfiguration {
     #[serde(
         rename = "proxyType",
@@ -78,7 +78,7 @@ pub struct AutodetectProxyConfiguration {
     pub extensible: Extensible,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DirectProxyConfiguration {
     #[serde(
         rename = "proxyType",
@@ -89,7 +89,7 @@ pub struct DirectProxyConfiguration {
     pub extensible: Extensible,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ManualProxyConfiguration {
     #[serde(
         rename = "proxyType",
@@ -108,7 +108,7 @@ pub struct ManualProxyConfiguration {
     pub extensible: Extensible,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct SocksProxyConfiguration {
     #[serde(rename = "socksProxy")]
     pub socks_proxy: String,
@@ -116,7 +116,7 @@ pub struct SocksProxyConfiguration {
     pub socks_version: u8,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct PacProxyConfiguration {
     #[serde(
         rename = "proxyType",
@@ -129,7 +129,7 @@ pub struct PacProxyConfiguration {
     pub extensible: Extensible,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct SystemProxyConfiguration {
     #[serde(
         rename = "proxyType",
@@ -140,7 +140,7 @@ pub struct SystemProxyConfiguration {
     pub extensible: Extensible,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct UserPromptHandler {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub alert: Option<UserPromptHandlerType>,
@@ -156,7 +156,7 @@ pub struct UserPromptHandler {
     pub prompt: Option<UserPromptHandlerType>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum UserPromptHandlerType {
     Accept,
@@ -166,7 +166,7 @@ pub enum UserPromptHandlerType {
 
 pub type Subscription = String;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SubscribeParameters {
     pub events: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -193,7 +193,7 @@ impl SubscribeParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct UnsubscribeByIDRequest {
     pub subscriptions: Vec<Subscription>,
 }
@@ -204,7 +204,7 @@ impl UnsubscribeByIDRequest {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct UnsubscribeByAttributesRequest {
     pub events: Vec<String>,
 }
@@ -215,7 +215,7 @@ impl UnsubscribeByAttributesRequest {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Status {
     pub method: String,
     pub params: EmptyParams,
@@ -230,13 +230,13 @@ impl Status {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct StatusResult {
     pub ready: bool,
     pub message: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct New {
     pub method: String,
     pub params: NewParameters,
@@ -251,7 +251,7 @@ impl New {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct NewParameters {
     pub capabilities: CapabilitiesRequest,
 }
@@ -262,7 +262,7 @@ impl NewParameters {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct NewResult {
     #[serde(rename = "sessionId")]
     pub session_id: String,
@@ -273,7 +273,7 @@ pub struct NewResult {
 #[deprecated(since = "0.3.0", note = "renamed to `CapabilityResponse` in the spec")]
 pub type Capabilities = CapabilityResponse;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CapabilityResponse {
     #[serde(rename = "acceptInsecureCerts")]
     pub accept_insecure_certs: bool,
@@ -300,7 +300,7 @@ pub struct CapabilityResponse {
     pub extensible: Extensible,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct End {
     pub method: String,
     pub params: EmptyParams,
@@ -315,7 +315,7 @@ impl End {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Subscribe {
     pub method: String,
     pub params: SubscribeParameters,
@@ -330,13 +330,13 @@ impl Subscribe {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct SubscribeResult {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subscription: Option<Subscription>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Unsubscribe {
     pub method: String,
     pub params: UnsubscribeParameters,
@@ -351,7 +351,7 @@ impl Unsubscribe {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum UnsubscribeParameters {
     UnsubscribeByAttributesRequest(UnsubscribeByAttributesRequest),

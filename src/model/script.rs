@@ -7,7 +7,7 @@ use crate::model::browsing_context::BrowsingContext;
 use crate::model::common::{Extensible, JsUint};
 use crate::model::result::EmptyResult;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum ScriptCommand {
     AddPreloadScript(AddPreloadScript),
@@ -18,7 +18,7 @@ pub enum ScriptCommand {
     RemovePreloadScript(RemovePreloadScript),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum ScriptResult {
     AddPreloadScriptResult(AddPreloadScriptResult),
@@ -26,7 +26,7 @@ pub enum ScriptResult {
     GetRealmsResult(GetRealmsResult),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum ScriptEvent {
     Message(Message),
@@ -36,7 +36,7 @@ pub enum ScriptEvent {
 
 pub type Channel = String;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ChannelValue {
     #[serde(
         rename = "type",
@@ -46,7 +46,7 @@ pub struct ChannelValue {
     pub value: ChannelProperties,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ChannelProperties {
     pub channel: Channel,
     #[serde(
@@ -58,7 +58,7 @@ pub struct ChannelProperties {
     pub ownership: Option<ResultOwnership>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum EvaluationResult {
     EvaluationResultSuccess(EvaluationResultSuccess),
@@ -84,7 +84,7 @@ pub type EvaluateResultSuccess = EvaluationResultSuccess;
 )]
 pub type EvaluateResultException = EvaluationResultException;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct EvaluationResultSuccess {
     #[serde(rename = "type")]
     pub result_type: String,
@@ -92,7 +92,7 @@ pub struct EvaluationResultSuccess {
     pub realm: Realm,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct EvaluationResultException {
     #[serde(rename = "type")]
     pub result_type: String,
@@ -101,7 +101,7 @@ pub struct EvaluationResultException {
     pub realm: Realm,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ExceptionDetails {
     #[serde(rename = "columnNumber")]
     pub column_number: JsUint,
@@ -117,7 +117,7 @@ pub type Handle = String;
 
 pub type InternalId = String;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum LocalValue {
     RemoteReference(RemoteReference),
@@ -133,38 +133,38 @@ pub enum LocalValue {
 
 pub type ListLocalValue = Vec<LocalValue>;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ArrayLocalValue {
     #[serde(rename = "type", deserialize_with = "crate::model::common::tag::array")]
     pub value_type: String,
     pub value: ListLocalValue,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DateLocalValue {
     #[serde(rename = "type", deserialize_with = "crate::model::common::tag::date")]
     pub value_type: String,
     pub value: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct MappingLocalValue(pub Vec<(LocalValueOrText, LocalValue)>);
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum LocalValueOrText {
     LocalValue(LocalValue),
     Text(String),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct MapLocalValue {
     #[serde(rename = "type", deserialize_with = "crate::model::common::tag::map")]
     pub value_type: String,
     pub value: MappingLocalValue,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ObjectLocalValue {
     #[serde(
         rename = "type",
@@ -174,14 +174,14 @@ pub struct ObjectLocalValue {
     pub value: MappingLocalValue,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct RegExpValue {
     pub pattern: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct RegExpLocalValue {
     #[serde(
         rename = "type",
@@ -191,7 +191,7 @@ pub struct RegExpLocalValue {
     pub value: RegExpValue,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct SetLocalValue {
     #[serde(rename = "type", deserialize_with = "crate::model::common::tag::set")]
     pub value_type: String,
@@ -202,7 +202,7 @@ pub type PreloadScript = String;
 
 pub type Realm = String;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum PrimitiveProtocolValue {
     StringValue(StringValue),
@@ -213,7 +213,7 @@ pub enum PrimitiveProtocolValue {
     UndefinedValue(UndefinedValue),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct UndefinedValue {
     #[serde(
         rename = "type",
@@ -222,13 +222,13 @@ pub struct UndefinedValue {
     pub value_type: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct NullValue {
     #[serde(rename = "type", deserialize_with = "crate::model::common::tag::null")]
     pub value_type: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct StringValue {
     #[serde(
         rename = "type",
@@ -247,7 +247,7 @@ impl StringValue {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum SpecialNumber {
     NaN,
     #[serde(rename = "-0")]
@@ -257,7 +257,7 @@ pub enum SpecialNumber {
     NegativeInfinity,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct NumberValue {
     #[serde(
         rename = "type",
@@ -267,14 +267,14 @@ pub struct NumberValue {
     pub value: NumberOrSpecialNumber,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum NumberOrSpecialNumber {
     Number(f64),
     SpecialNumber(SpecialNumber),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct BooleanValue {
     #[serde(
         rename = "type",
@@ -284,7 +284,7 @@ pub struct BooleanValue {
     pub value: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct BigIntValue {
     #[serde(
         rename = "type",
@@ -294,7 +294,7 @@ pub struct BigIntValue {
     pub value: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum RealmInfo {
     WindowRealmInfo(WindowRealmInfo),
@@ -307,13 +307,13 @@ pub enum RealmInfo {
     WorkletRealmInfo(WorkletRealmInfo),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct BaseRealmInfo {
     pub realm: Realm,
     pub origin: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct WindowRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
@@ -329,7 +329,7 @@ pub struct WindowRealmInfo {
     pub sandbox: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DedicatedWorkerRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
@@ -341,7 +341,7 @@ pub struct DedicatedWorkerRealmInfo {
     pub owners: Vec<Realm>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct SharedWorkerRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
@@ -352,7 +352,7 @@ pub struct SharedWorkerRealmInfo {
     pub realm_type: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ServiceWorkerRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
@@ -363,7 +363,7 @@ pub struct ServiceWorkerRealmInfo {
     pub realm_type: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct WorkerRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
@@ -374,7 +374,7 @@ pub struct WorkerRealmInfo {
     pub realm_type: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct PaintWorkletRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
@@ -385,7 +385,7 @@ pub struct PaintWorkletRealmInfo {
     pub realm_type: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AudioWorkletRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
@@ -396,7 +396,7 @@ pub struct AudioWorkletRealmInfo {
     pub realm_type: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct WorkletRealmInfo {
     #[serde(flatten)]
     pub base: BaseRealmInfo,
@@ -407,7 +407,7 @@ pub struct WorkletRealmInfo {
     pub realm_type: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum RealmType {
     #[serde(rename = "window")]
     Window,
@@ -427,14 +427,14 @@ pub enum RealmType {
     Worklet,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum RemoteReference {
     SharedReference(SharedReference),
     RemoteObjectReference(RemoteObjectReference),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct SharedReference {
     #[serde(rename = "sharedId")]
     pub shared_id: SharedId,
@@ -444,7 +444,7 @@ pub struct SharedReference {
     pub extensible: Extensible,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct RemoteObjectReference {
     pub handle: Handle,
     #[serde(rename = "sharedId", skip_serializing_if = "Option::is_none")]
@@ -453,7 +453,7 @@ pub struct RemoteObjectReference {
     pub extensible: Extensible,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum RemoteValue {
     PrimitiveProtocolValue(PrimitiveProtocolValue),
@@ -483,14 +483,14 @@ pub type ListRemoteValue = Vec<RemoteValue>;
 
 pub type MappingRemoteValue = Vec<(RemoteValueOrText, RemoteValue)>;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum RemoteValueOrText {
     RemoteValue(RemoteValue),
     Text(String),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct SymbolRemoteValue {
     #[serde(
         rename = "type",
@@ -503,7 +503,7 @@ pub struct SymbolRemoteValue {
     pub internal_id: Option<InternalId>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ArrayRemoteValue {
     #[serde(rename = "type", deserialize_with = "crate::model::common::tag::array")]
     pub value_type: String,
@@ -515,7 +515,7 @@ pub struct ArrayRemoteValue {
     pub value: Option<ListRemoteValue>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ObjectRemoteValue {
     #[serde(
         rename = "type",
@@ -530,7 +530,7 @@ pub struct ObjectRemoteValue {
     pub value: Option<MappingRemoteValue>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct FunctionRemoteValue {
     #[serde(
         rename = "type",
@@ -543,7 +543,7 @@ pub struct FunctionRemoteValue {
     pub internal_id: Option<InternalId>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct RegExpRemoteValue {
     #[serde(flatten)]
     pub local_value: RegExpLocalValue,
@@ -553,7 +553,7 @@ pub struct RegExpRemoteValue {
     pub internal_id: Option<InternalId>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DateRemoteValue {
     #[serde(flatten)]
     pub local_value: DateLocalValue,
@@ -563,7 +563,7 @@ pub struct DateRemoteValue {
     pub internal_id: Option<InternalId>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct MapRemoteValue {
     #[serde(rename = "type", deserialize_with = "crate::model::common::tag::map")]
     pub value_type: String,
@@ -575,7 +575,7 @@ pub struct MapRemoteValue {
     pub value: Option<MappingRemoteValue>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct SetRemoteValue {
     #[serde(rename = "type", deserialize_with = "crate::model::common::tag::set")]
     pub value_type: String,
@@ -587,7 +587,7 @@ pub struct SetRemoteValue {
     pub value: Option<ListRemoteValue>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct WeakMapRemoteValue {
     #[serde(
         rename = "type",
@@ -600,7 +600,7 @@ pub struct WeakMapRemoteValue {
     pub internal_id: Option<InternalId>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct WeakSetRemoteValue {
     #[serde(
         rename = "type",
@@ -613,7 +613,7 @@ pub struct WeakSetRemoteValue {
     pub internal_id: Option<InternalId>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GeneratorRemoteValue {
     #[serde(
         rename = "type",
@@ -626,7 +626,7 @@ pub struct GeneratorRemoteValue {
     pub internal_id: Option<InternalId>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ErrorRemoteValue {
     #[serde(rename = "type", deserialize_with = "crate::model::common::tag::error")]
     pub value_type: String,
@@ -636,7 +636,7 @@ pub struct ErrorRemoteValue {
     pub internal_id: Option<InternalId>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ProxyRemoteValue {
     #[serde(rename = "type", deserialize_with = "crate::model::common::tag::proxy")]
     pub value_type: String,
@@ -646,7 +646,7 @@ pub struct ProxyRemoteValue {
     pub internal_id: Option<InternalId>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct PromiseRemoteValue {
     #[serde(
         rename = "type",
@@ -659,7 +659,7 @@ pub struct PromiseRemoteValue {
     pub internal_id: Option<InternalId>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct TypedArrayRemoteValue {
     #[serde(
         rename = "type",
@@ -672,7 +672,7 @@ pub struct TypedArrayRemoteValue {
     pub internal_id: Option<InternalId>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ArrayBufferRemoteValue {
     #[serde(
         rename = "type",
@@ -685,7 +685,7 @@ pub struct ArrayBufferRemoteValue {
     pub internal_id: Option<InternalId>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct NodeListRemoteValue {
     #[serde(
         rename = "type",
@@ -700,7 +700,7 @@ pub struct NodeListRemoteValue {
     pub value: Option<ListRemoteValue>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct HTMLCollectionRemoteValue {
     #[serde(
         rename = "type",
@@ -715,7 +715,7 @@ pub struct HTMLCollectionRemoteValue {
     pub value: Option<ListRemoteValue>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct NodeRemoteValue {
     #[serde(rename = "type", deserialize_with = "crate::model::common::tag::node")]
     pub value_type: String,
@@ -729,7 +729,7 @@ pub struct NodeRemoteValue {
     pub value: Option<Box<NodeProperties>>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct NodeProperties {
     #[serde(rename = "nodeType")]
     pub node_type: JsUint,
@@ -756,14 +756,14 @@ pub struct NodeProperties {
     pub shadow_root: Option<NodeRemoteValue>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")] // Match JSON values ("open" / "closed")
 pub enum NodePropertiesMode {
     Open,
     Closed,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct WindowProxyRemoteValue {
     #[serde(
         rename = "type",
@@ -777,19 +777,19 @@ pub struct WindowProxyRemoteValue {
     pub internal_id: Option<InternalId>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct WindowProxyProperties {
     pub context: BrowsingContext,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum ResultOwnership {
     Root,
     None,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct SerializationOptions {
     #[serde(rename = "maxDomDepth", skip_serializing_if = "Option::is_none")]
     pub max_dom_depth: Option<JsUint>,
@@ -799,7 +799,7 @@ pub struct SerializationOptions {
     pub include_shadow_tree: Option<IncludeShadowTree>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum IncludeShadowTree {
     None,
@@ -809,7 +809,7 @@ pub enum IncludeShadowTree {
 
 pub type SharedId = String;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct StackFrame {
     #[serde(rename = "columnNumber")]
     pub column_number: JsUint,
@@ -820,13 +820,13 @@ pub struct StackFrame {
     pub url: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct StackTrace {
     #[serde(rename = "callFrames")]
     pub call_frames: Vec<StackFrame>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Source {
     pub realm: Realm,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -835,7 +835,7 @@ pub struct Source {
     pub user_context: Option<UserContext>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct RealmTarget {
     pub realm: Realm,
 }
@@ -846,7 +846,7 @@ impl RealmTarget {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ContextTarget {
     pub context: BrowsingContext,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -859,14 +859,14 @@ impl ContextTarget {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum Target {
     ContextTarget(ContextTarget),
     RealmTarget(RealmTarget),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct AddPreloadScript {
     pub method: String,
     pub params: AddPreloadScriptParameters,
@@ -881,7 +881,7 @@ impl AddPreloadScript {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct AddPreloadScriptParameters {
     #[serde(rename = "functionDeclaration")]
     pub function_declaration: String,
@@ -913,12 +913,12 @@ impl AddPreloadScriptParameters {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AddPreloadScriptResult {
     pub script: PreloadScript,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Disown {
     pub method: String,
     pub params: DisownParameters,
@@ -933,7 +933,7 @@ impl Disown {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct DisownParameters {
     pub handles: Vec<Handle>,
     pub target: Target,
@@ -945,7 +945,7 @@ impl DisownParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct CallFunction {
     pub method: String,
     pub params: CallFunctionParameters,
@@ -960,7 +960,7 @@ impl CallFunction {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct CallFunctionParameters {
     #[serde(rename = "functionDeclaration")]
     pub function_declaration: String,
@@ -1005,7 +1005,7 @@ impl CallFunctionParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Evaluate {
     pub method: String,
     pub params: EvaluateParameters,
@@ -1020,7 +1020,7 @@ impl Evaluate {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct EvaluateParameters {
     pub expression: String,
     pub target: Target,
@@ -1056,7 +1056,7 @@ impl EvaluateParameters {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct GetRealms {
     pub method: String,
     pub params: GetRealmsParameters,
@@ -1071,7 +1071,7 @@ impl GetRealms {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct GetRealmsParameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<BrowsingContext>,
@@ -1089,12 +1089,12 @@ impl GetRealmsParameters {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetRealmsResult {
     pub realms: Vec<RealmInfo>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct RemovePreloadScript {
     pub method: String,
     pub params: RemovePreloadScriptParameters,
@@ -1109,7 +1109,7 @@ impl RemovePreloadScript {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct RemovePreloadScriptParameters {
     pub script: PreloadScript,
 }
@@ -1120,32 +1120,32 @@ impl RemovePreloadScriptParameters {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Message {
     pub method: String,
     pub params: MessageParameters,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct MessageParameters {
     pub channel: Channel,
     pub data: RemoteValue,
     pub source: Source,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct RealmCreated {
     pub method: String,
     pub params: RealmInfo,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct RealmDestroyed {
     pub method: String,
     pub params: RealmDestroyedParameters,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct RealmDestroyedParameters {
     pub realm: Realm,
 }

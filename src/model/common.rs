@@ -9,7 +9,7 @@ pub type JsInt = i64;
 // 0..9007199254740991
 pub type JsUint = u64;
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
 pub struct EmptyParams {
     #[serde(flatten)]
     pub extensible: Extensible,

@@ -9,7 +9,7 @@ use crate::model::session::SessionResult;
 use crate::model::storage::StorageResult;
 use crate::model::web_extension::WebExtensionResult;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum ResultData {
     BrowserResult(BrowserResult),
@@ -25,7 +25,7 @@ pub enum ResultData {
     EmptyResult(EmptyResult),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct EmptyResult {
     #[serde(flatten)]
     pub extensible: Extensible,

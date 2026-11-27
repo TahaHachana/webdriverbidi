@@ -7,7 +7,7 @@ use crate::model::log::LogEvent;
 use crate::model::network::NetworkEvent;
 use crate::model::script::ScriptEvent;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Event {
     #[serde(rename = "type")]
     pub event_type: String,
@@ -16,7 +16,7 @@ pub struct Event {
     pub extensible: Extensible,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum EventData {
     BrowsingContextEvent(BrowsingContextEvent),
