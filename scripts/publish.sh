@@ -101,8 +101,7 @@ step "cargo fmt --check"
 cargo fmt --check
 
 step "cargo clippy"
-# Warnings are reported but not fatal (the codebase has some old ones); errors fail.
-cargo clippy --all-targets
+cargo clippy --all-targets -- -D warnings
 
 step "cargo build"
 cargo build --all-targets

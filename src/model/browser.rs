@@ -1,10 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::model::common::{EmptyParams, JsInt, JsUint};
 use crate::model::session::{ProxyConfiguration, UserPromptHandler};
-use crate::{
-    commands::session,
-    model::common::{EmptyParams, JsInt, JsUint},
-};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]

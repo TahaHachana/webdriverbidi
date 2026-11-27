@@ -695,6 +695,10 @@ pub struct PrintParameters {
 }
 
 impl PrintParameters {
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "one argument per spec parameter; struct literals are the alternative"
+    )]
     pub fn new(
         context: BrowsingContext,
         background: Option<bool>,

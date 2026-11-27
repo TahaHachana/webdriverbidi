@@ -80,6 +80,10 @@ pub struct CookieFilter {
 }
 
 impl CookieFilter {
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "one argument per spec parameter; struct literals are the alternative"
+    )]
     pub fn new(
         name: Option<String>,
         value: Option<BytesValue>,
@@ -209,6 +213,10 @@ pub struct PartialCookie {
 }
 
 impl PartialCookie {
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "one argument per spec parameter; struct literals are the alternative"
+    )]
     pub fn new(
         name: String,
         value: BytesValue,

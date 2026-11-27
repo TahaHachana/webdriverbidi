@@ -18,6 +18,10 @@ pub enum ScriptCommand {
     RemovePreloadScript(RemovePreloadScript),
 }
 
+#[allow(
+    clippy::large_enum_variant,
+    reason = "mirrors a spec union; boxing variants would make matching on it awkward for no measured gain"
+)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum ScriptResult {
@@ -985,6 +989,10 @@ pub struct CallFunctionParameters {
 }
 
 impl CallFunctionParameters {
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "one argument per spec parameter; struct literals are the alternative"
+    )]
     pub fn new(
         function_declaration: String,
         await_promise: bool,

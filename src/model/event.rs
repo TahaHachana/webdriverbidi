@@ -16,6 +16,10 @@ pub struct Event {
     pub extensible: Extensible,
 }
 
+#[allow(
+    clippy::large_enum_variant,
+    reason = "mirrors a spec union; boxing variants would make matching on it awkward for no measured gain"
+)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum EventData {

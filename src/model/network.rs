@@ -292,6 +292,10 @@ pub struct SetCookieHeader {
 }
 
 impl SetCookieHeader {
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "one argument per spec parameter; struct literals are the alternative"
+    )]
     pub fn new(
         name: String,
         value: BytesValue,

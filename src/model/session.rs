@@ -4,6 +4,10 @@ use crate::model::browser::UserContext;
 use crate::model::browsing_context::BrowsingContext;
 use crate::model::common::{EmptyParams, Extensible};
 
+#[allow(
+    clippy::large_enum_variant,
+    reason = "mirrors a spec union; boxing variants would make matching on it awkward for no measured gain"
+)]
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum SessionCommand {
@@ -14,6 +18,10 @@ pub enum SessionCommand {
     Unsubscribe(Unsubscribe),
 }
 
+#[allow(
+    clippy::large_enum_variant,
+    reason = "mirrors a spec union; boxing variants would make matching on it awkward for no measured gain"
+)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum SessionResult {
@@ -246,6 +254,10 @@ pub struct New {
 }
 
 impl New {
+    #[allow(
+        clippy::self_named_constructors,
+        reason = "the type is named after the spec's `session.New` command"
+    )]
     pub fn new(params: NewParameters) -> Self {
         Self {
             method: "session.new".to_string(),
