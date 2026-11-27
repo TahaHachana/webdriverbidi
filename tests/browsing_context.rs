@@ -33,21 +33,26 @@ async fn new_tab(session: &mut WebDriverBiDiSession) -> Result<BrowsingContext> 
 }
 
 /// Poll `expression` until it evaluates to `expected`, for state that settles asynchronously.
+///
+/// Evaluation errors are retried too: while a navigation (e.g. a history
+/// traversal) swaps documents, the old realm is gone and Chrome answers
+/// "Cannot find context with specified id" until the new one exists.
 async fn wait_for(
     session: &mut WebDriverBiDiSession,
     context: &str,
     expression: &str,
     expected: &str,
 ) -> Result<()> {
-    let mut last = String::new();
+    let mut last = String::from("<not evaluated>");
     for _ in 0..50 {
-        last = eval_string(session, context, expression).await?;
-        if last == expected {
-            return Ok(());
+        match eval_string(session, context, expression).await {
+            Ok(value) if value == expected => return Ok(()),
+            Ok(value) => last = format!("{value:?}"),
+            Err(e) => last = format!("an error ({e})"),
         }
         tokio::time::sleep(Duration::from_millis(100)).await;
     }
-    bail!("`{expression}` is {last:?}, expected {expected:?}")
+    bail!("`{expression}` is {last}, expected {expected:?}")
 }
 
 // https://github.com/web-platform-tests/wpt/tree/master/webdriver/tests/bidi/browsing_context/navigate
