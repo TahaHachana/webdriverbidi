@@ -3,6 +3,8 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
+use futures::StreamExt;
+use futures::stream::{SplitSink, SplitStream};
 use log::debug;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -10,6 +12,7 @@ use serde_json::Value;
 use tokio::net::TcpStream;
 use tokio::sync::{Mutex, oneshot};
 use tokio::task;
+use tokio_tungstenite::tungstenite::protocol::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
 
 use crate::command_sender;
@@ -31,6 +34,11 @@ use crate::model::storage::*;
 use crate::model::web_extension::*;
 use crate::webdriver::capabilities::CapabilitiesRequest;
 use crate::webdriver::session;
+
+/// The write half of the session's WebSocket connection.
+pub(crate) type WebSocketWriter = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>;
+/// The read half of the session's WebSocket connection.
+pub(crate) type WebSocketReader = SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>;
 
 /// Which way a WebDriver BiDi message travelled.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -66,7 +74,6 @@ pub type EventHandler =
 /// * `session_id` - The unique identifier for the session.
 /// * `capabilities` - The desired capabilities for the session.
 /// * `websocket_url` - The WebSocket URL for bidirectional communication.
-/// * `websocket_stream` - The WebSocket stream for communication protected by an `Arc` wrapped `Mutex`.
 /// * `pending_commands` - A map of pending commands awaiting responses protected by an `Arc` wrapped `Mutex`.
 /// * `event_handlers` - A map of events and their handlers protected by an `Arc` wrapped `Mutex`.
 #[derive(Clone)]
@@ -77,10 +84,12 @@ pub struct WebDriverBiDiSession {
     pub session_id: String,
     pub capabilities: CapabilitiesRequest,
     pub websocket_url: String,
-    pub websocket_stream: Option<Arc<Mutex<WebSocketStream<MaybeTlsStream<TcpStream>>>>>,
     pub pending_commands: Arc<Mutex<HashMap<u64, oneshot::Sender<Value>>>>,
     event_handlers: Arc<Mutex<HashMap<EventType, EventHandler>>>,
     message_observer: ObserverSlot,
+    /// The write half of the WebSocket connection, once started; the read half
+    /// belongs to the message handler task.
+    websocket_writer: Option<Arc<Mutex<WebSocketWriter>>>,
 }
 
 impl WebDriverBiDiSession {
@@ -101,10 +110,10 @@ impl WebDriverBiDiSession {
             session_id: String::new(),
             capabilities,
             websocket_url: String::new(),
-            websocket_stream: None,
             pending_commands: Arc::new(Mutex::new(HashMap::new())),
             event_handlers: Arc::new(Mutex::new(HashMap::new())),
             message_observer: Arc::new(std::sync::RwLock::new(None)),
+            websocket_writer: None,
         }
     }
 
@@ -136,15 +145,16 @@ impl WebDriverBiDiSession {
             .await
             .map_err(|e| SessionError::Other(format!("Failed to connect to WebSocket: {}", e)))?;
 
-        let websocket_stream = Arc::new(Mutex::new(stream));
-        self.websocket_stream = Some(websocket_stream.clone());
+        // Commands are written through the write half; a background task owns
+        // the read half and waits for incoming messages.
+        let (writer, reader) = stream.split();
+        self.websocket_writer = Some(Arc::new(Mutex::new(writer)));
 
         let pending_commands = self.pending_commands.clone();
         let event_handlers = self.event_handlers.clone();
 
         debug!("Starting the incoming messages management loop");
-        // Spawn a background task to manage incoming messages
-        self.spawn_message_handler_task(websocket_stream, pending_commands, event_handlers);
+        self.spawn_message_handler_task(reader, pending_commands, event_handlers);
 
         Ok(())
     }
@@ -169,9 +179,9 @@ impl WebDriverBiDiSession {
         &mut self,
         command: T,
     ) -> Result<U, CommandError> {
-        if let Some(websocket_stream) = &self.websocket_stream {
+        if let Some(websocket_writer) = &self.websocket_writer {
             command_sender::send_command(
-                websocket_stream.clone(),
+                websocket_writer.clone(),
                 self.pending_commands.clone(),
                 self.message_observer.clone(),
                 command,
@@ -185,16 +195,16 @@ impl WebDriverBiDiSession {
 
     /// Spawn a background task to manage incoming WebSocket messages.
     ///
-    /// This method creates a new asynchronous task that continuously listens for
-    /// incoming messages on the WebSocket connection and handles them appropriately.
+    /// The task waits for messages on the read half of the connection, routes
+    /// command responses and events, and ends when the connection closes.
     fn spawn_message_handler_task(
         &self,
-        websocket_stream: Arc<Mutex<WebSocketStream<MaybeTlsStream<TcpStream>>>>,
+        reader: WebSocketReader,
         pending_commands: Arc<Mutex<HashMap<u64, oneshot::Sender<Value>>>>,
         event_handlers: Arc<Mutex<HashMap<EventType, EventHandler>>>,
     ) {
         task::spawn(message_handler::handle_messages(
-            websocket_stream,
+            reader,
             pending_commands,
             event_handlers,
             self.message_observer.clone(),

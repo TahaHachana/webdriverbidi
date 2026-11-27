@@ -1,53 +1,36 @@
 use std::collections::HashMap;
-use std::pin::Pin;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use futures::stream::Stream;
-use futures::task::{Context, Poll};
-use log::error;
+use futures::StreamExt;
+use log::{debug, error};
 use serde_json::Value;
-use tokio::net::TcpStream;
 use tokio::sync::{Mutex, oneshot};
 use tokio_tungstenite::tungstenite::protocol::Message;
-use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
 use crate::command_sender::notify;
 use crate::events::EventType;
-use crate::session::{EventHandler, MessageDirection, ObserverSlot};
+use crate::session::{EventHandler, MessageDirection, ObserverSlot, WebSocketReader};
 
 const ID_FIELD: &str = "id";
 const TYPE_FIELD: &str = "type";
 const EVENT_TYPE_VALUE: &str = "event";
 const METHOD_FIELD: &str = "method";
 
-/// Start a loop for handling incoming WebSocket messages.
+/// Handle incoming WebSocket messages until the connection closes or fails.
+///
+/// The task owns the read half of the connection and waits for each message, so
+/// it uses no CPU while idle. When it stops, pending commands are dropped so
+/// their callers fail immediately instead of waiting for the response timeout.
 pub async fn handle_messages(
-    websocket_stream: Arc<Mutex<WebSocketStream<MaybeTlsStream<TcpStream>>>>,
+    mut stream: WebSocketReader,
     pending_commands: Arc<Mutex<HashMap<u64, oneshot::Sender<Value>>>>,
     event_handlers: Arc<Mutex<HashMap<EventType, EventHandler>>>,
     observer: ObserverSlot,
 ) {
-    loop {
-        let message = {
-            // debug!("Locking the WebSocket stream mutex");
-            let mut websocket_stream = websocket_stream.lock().await;
-
-            let waker = futures::task::noop_waker();
-            let mut cx = Context::from_waker(&waker);
-
-            match Pin::new(&mut *websocket_stream).poll_next(&mut cx) {
-                Poll::Ready(Some(Ok(msg))) => Some(Ok(msg)),
-                Poll::Ready(Some(Err(e))) => Some(Err(e)),
-                Poll::Ready(None) => None,
-                Poll::Pending => None,
-            }
-        };
-
-        // debug!("Received message: {:?}", message);
-
+    while let Some(message) = stream.next().await {
         match message {
-            Some(Ok(Message::Text(text))) => match serde_json::from_str::<Value>(&text) {
+            Ok(Message::Text(text)) => match serde_json::from_str::<Value>(&text) {
                 Ok(json) => {
                     notify(&observer, MessageDirection::Received, &json);
                     // debug!("Raw message JSON: {:?}", json);
@@ -87,11 +70,16 @@ pub async fn handle_messages(
                     error!("Failed to parse JSON: {:?}", e);
                 }
             },
-            Some(Ok(_)) => {}
-            Some(Err(e)) => {
-                error!("Error receiving message: {}", e);
+            Ok(Message::Close(frame)) => {
+                debug!("WebSocket closed by the remote end: {:?}", frame);
             }
-            None => {}
+            Ok(_) => {}
+            Err(e) => {
+                error!("Error receiving message, closing the connection: {}", e);
+                break;
+            }
         }
     }
+    debug!("WebSocket connection ended; failing pending commands");
+    pending_commands.lock().await.clear();
 }
