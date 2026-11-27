@@ -13,6 +13,18 @@ use tokio_tungstenite::tungstenite::protocol::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
 use super::error::CommandError;
+use crate::session::{MessageDirection, ObserverSlot};
+
+/// Pass `message` to the session's observer, if one is set.
+pub(crate) fn notify(observer: &ObserverSlot, direction: MessageDirection, message: &Value) {
+    let observer = observer
+        .read()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .clone();
+    if let Some(observer) = observer {
+        observer(direction, message);
+    }
+}
 
 const COMMAND_ID_KEY: &str = "id";
 const RESULT_KEY: &str = "result";
@@ -26,6 +38,7 @@ const RECEIVER_TIMEOUT: u64 = 60;
 pub async fn send_command<T: Serialize, U: DeserializeOwned>(
     websocket_stream: Arc<Mutex<WebSocketStream<MaybeTlsStream<TcpStream>>>>,
     pending_commands: Arc<Mutex<HashMap<u64, oneshot::Sender<Value>>>>,
+    observer: ObserverSlot,
     command: T,
 ) -> Result<U, CommandError> {
     let value = serde_json::to_value(command).map_err(|e| {
@@ -41,6 +54,8 @@ pub async fn send_command<T: Serialize, U: DeserializeOwned>(
             error!("Missing command ID in the serialized value: {:?}", value);
             CommandError::MissingCommandId
         })?;
+
+    notify(&observer, MessageDirection::Sent, &value);
 
     let message = Message::Text(value.to_string().into());
 
