@@ -6,14 +6,12 @@ use log::{debug, error};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
-use tokio::net::TcpStream;
 use tokio::sync::{Mutex, oneshot};
 use tokio::time::{Duration, timeout};
 use tokio_tungstenite::tungstenite::protocol::Message;
-use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
 use super::error::CommandError;
-use crate::session::{MessageDirection, ObserverSlot};
+use crate::session::{MessageDirection, ObserverSlot, WebSocketWriter};
 
 /// Pass `message` to the session's observer, if one is set.
 pub(crate) fn notify(observer: &ObserverSlot, direction: MessageDirection, message: &Value) {
@@ -36,7 +34,7 @@ const RECEIVER_TIMEOUT: u64 = 60;
 /// This function serializes the given command, sends it over the provided WebSocket stream,
 /// and waits for a response. Timesout if no response is received within 60 seconds.
 pub async fn send_command<T: Serialize, U: DeserializeOwned>(
-    websocket_stream: Arc<Mutex<WebSocketStream<MaybeTlsStream<TcpStream>>>>,
+    websocket_writer: Arc<Mutex<WebSocketWriter>>,
     pending_commands: Arc<Mutex<HashMap<u64, oneshot::Sender<Value>>>>,
     observer: ObserverSlot,
     command: T,
@@ -69,8 +67,8 @@ pub async fn send_command<T: Serialize, U: DeserializeOwned>(
 
     {
         debug!("Locking the WebSocket stream mutex");
-        let mut websocket_stream = websocket_stream.lock().await;
-        if let Err(e) = websocket_stream.send(message).await {
+        let mut websocket_writer = websocket_writer.lock().await;
+        if let Err(e) = websocket_writer.send(message).await {
             error!("Error sending message: {:?}", e);
             pending_commands.lock().await.remove(&command_id);
             return Err(CommandError::WebSocketSendError(e));

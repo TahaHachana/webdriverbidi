@@ -16,8 +16,18 @@ minor version bump may contain breaking changes).
 ### Changed (breaking)
 
 - `ErrorCode` has a new variant, `NoSuchClientWindow`, which breaks exhaustive `match`es.
+- `WebDriverBiDiSession::websocket_stream` is removed. The connection is now split into
+  a write half, used to send commands, and a read half, owned by the task that receives
+  messages; both are private. Use `send_command` to send raw commands and
+  `set_message_observer` to see raw traffic.
 
 ### Fixed
+
+- Every session's receive task polled the WebSocket in a loop that never waited,
+  using a full CPU core for as long as the session existed and continuing after the
+  connection closed. It now waits for messages and stops when the connection ends.
+- A command waiting for its response when the connection closed waited for the
+  60-second response timeout; it now fails immediately.
 
 - `ErrorCode` lacked `no such client window`, which the spec's prose defines (its CDDL list
   omits it) and Firefox returns for `browser.setClientWindowState` on an unknown window, so
