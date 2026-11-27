@@ -83,12 +83,18 @@ case "$STATUS" in
   *) echo "warning: could not query crates.io (HTTP $STATUS); continuing" ;;
 esac
 
-# 3. README version ----------------------------------------------------------
+# 3. README and CHANGELOG ----------------------------------------------------------
 step "Checking README version"
 if ! grep -q "^$NAME = \"$VERSION\"" README.md; then
   die "README.md installation snippet does not reference $NAME = \"$VERSION\""
 fi
 echo "README.md references $VERSION"
+
+step "Checking CHANGELOG"
+if ! grep -q "^## \[$VERSION\]" CHANGELOG.md; then
+  die "CHANGELOG.md has no '## [$VERSION]' section"
+fi
+echo "CHANGELOG.md has an entry for $VERSION"
 
 # 4. Quality checks ----------------------------------------------------------
 step "cargo fmt --check"

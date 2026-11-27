@@ -357,7 +357,7 @@ scripts/publish.sh --dry-run    # run every check and `cargo publish --dry-run`
 scripts/publish.sh              # publish to crates.io, then tag and push vX.Y.Z
 ```
 
-Bump `version` in `Cargo.toml` and the version in the installation snippet above first. You must be logged in to crates.io (`cargo login`).
+Bump `version` in `Cargo.toml` and the version in the installation snippet above, and add a section for the release to [CHANGELOG.md](CHANGELOG.md), first. The script checks all three. You must be logged in to crates.io (`cargo login`).
 
 ## Contributing
 

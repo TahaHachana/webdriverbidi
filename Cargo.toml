@@ -6,6 +6,12 @@ authors = ["Taha Hachana <tahahachana@gmail.com>"]
 description = "WebDriver BiDi client implementation in Rust."
 license = "MIT"
 repository = "https://github.com/TahaHachana/webdriverbidi"
+rust-version = "1.85"
+readme = "README.md"
+keywords = ["webdriver", "bidi", "browser", "automation", "testing"]
+categories = ["development-tools::testing", "web-programming", "asynchronous"]
+# Ship only what users need; tests, fixtures, scripts and notes stay in the repo.
+include = ["src/**/*.rs", "examples/**/*.rs", "README.md", "CHANGELOG.md", "LICENSE"]
 
 [dependencies]
 tokio = { version = "1.47.0", features = ["full"] }
