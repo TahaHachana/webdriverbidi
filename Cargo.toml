@@ -27,3 +27,8 @@ log = "0.4.27"
 anyhow = "1.0.98"
 axum = "0.8.4"
 cddl = "0.10.7"
+
+# Speeds up CDDL parsing in the conformance and live tests (applies only when
+# building this repository, not to crates that depend on it).
+[profile.dev.package.cddl]
+opt-level = 3

@@ -9,7 +9,7 @@ use webdriverbidi::model::session::{
     UnsubscribeParameters,
 };
 
-use support::with_session;
+use support::{new_session, with_session};
 
 // https://github.com/web-platform-tests/wpt/tree/master/webdriver/tests/bidi/session/status
 #[tokio::test]
@@ -65,4 +65,21 @@ async fn subscribe_then_unsubscribe_by_attributes() -> Result<()> {
         Ok(())
     })
     .await
+}
+
+// https://github.com/web-platform-tests/wpt/tree/master/webdriver/tests/bidi/session/end
+#[tokio::test]
+async fn end_closes_the_session() -> Result<()> {
+    // Not run through `with_session`, which ends the session itself.
+    let mut session = new_session().await?;
+    let ended = session.session_end(EmptyParams::new()).await;
+    // Firefox only allows `session.end` in sessions started over BiDi.
+    if support::supported("session.end", ended)?.is_none() {
+        session.close().await?;
+        return Ok(());
+    }
+    // chromedriver still accepts the HTTP `DELETE` afterwards, so its result
+    // says nothing about whether `session.end` worked; ignore it.
+    let _ = session.close().await;
+    Ok(())
 }
