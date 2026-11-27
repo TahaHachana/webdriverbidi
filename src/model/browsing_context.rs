@@ -1058,8 +1058,13 @@ pub struct ContextCreated {
 pub struct ContextCreatedParameters {
     #[serde(flatten)]
     pub info: BaseInfo,
-    #[serde(rename = "hasPlannedNavigation")]
-    pub has_planned_navigation: bool,
+    /// Added to the spec in 2026; `None` when the browser doesn't send it yet
+    /// (e.g. Chrome 158).
+    #[serde(
+        rename = "hasPlannedNavigation",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub has_planned_navigation: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -1115,7 +1120,9 @@ pub struct DownloadWillBegin {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DownloadWillBeginParams {
-    pub download: Download,
+    /// `None` when the browser predates this field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub download: Option<Download>,
     #[serde(rename = "suggestedFilename")]
     pub suggested_filename: String,
     #[serde(flatten)]
@@ -1139,7 +1146,9 @@ pub enum DownloadEndParams {
 pub struct DownloadCanceledParams {
     #[serde(deserialize_with = "crate::model::common::tag::canceled")]
     pub status: String,
-    pub download: Download,
+    /// `None` when the browser predates this field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub download: Option<Download>,
     #[serde(flatten)]
     pub base: BaseNavigationInfo,
 }
@@ -1148,7 +1157,9 @@ pub struct DownloadCanceledParams {
 pub struct DownloadCompleteParams {
     #[serde(deserialize_with = "crate::model::common::tag::complete")]
     pub status: String,
-    pub download: Download,
+    /// `None` when the browser predates this field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub download: Option<Download>,
     pub filepath: Option<String>,
     #[serde(flatten)]
     pub base: BaseNavigationInfo,
@@ -1228,7 +1239,7 @@ mod tests {
         let params: ContextCreatedParameters = serde_json::from_value(raw).unwrap();
         assert_eq!(params.info.context, "c1");
         assert_eq!(params.info.user_context, "default");
-        assert!(params.has_planned_navigation);
+        assert_eq!(params.has_planned_navigation, Some(true));
     }
 
     #[test]

@@ -23,7 +23,7 @@ Add the following to your `Cargo.toml` (the example below will also require toki
 
 ```toml
 [dependencies]
-webdriverbidi = "0.3.0"
+webdriverbidi = "0.4.0"
 ```
 
 ### Usage
@@ -346,9 +346,18 @@ cargo test --lib --test cddl_conformance   # no browser needed; runs in CI
 - coverage tests fail if the spec has a command, result, event or error code the suite
   doesn't exercise, so `scripts/update-cddl.sh` followed by `cargo test` lists what to implement.
 
-The other files in `tests/` are integration tests that need a WebDriver BiDi server on
-`localhost:4444`, e.g. `scripts/install-chromedriver.sh && drivers/chromedriver --port=4444`,
-then `cargo test --tests -- --test-threads=1`.
+The other files in `tests/` (one per spec module) are live integration tests against a real
+browser, which also run in CI:
+
+```bash
+scripts/install-chromedriver.sh && drivers/chromedriver --port=4444 &
+cargo test --tests -- --test-threads=1
+```
+
+They run headless. `WEBDRIVERBIDI_BROWSER=firefox`, `WEBDRIVERBIDI_HEADED=1`, `WEBDRIVERBIDI_HOST`
+and `WEBDRIVERBIDI_PORT` change that; see `tests/support/mod.rs` for the harness
+(`with_session`, `inline` test pages, `subscribe` for events, and `supported`, which skips
+commands a browser doesn't implement yet).
 
 ## Releasing
 

@@ -22,5 +22,19 @@ jobs:
       run: cargo build --verbose
     - name: Unit and spec conformance tests (no browser needed)
       run: cargo test --verbose --lib --test cddl_conformance
-    #- name: Run tests
-    #  run: cargo test --verbose
+
+  integration:
+    # Live tests against headless Chrome (preinstalled on GitHub's Ubuntu runners).
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install chromedriver matching the runner's Chrome
+      run: scripts/install-chromedriver.sh
+    - name: Start chromedriver
+      run: |
+        drivers/chromedriver --port=4444 > chromedriver.log 2>&1 &
+        for _ in $(seq 30); do curl -sf localhost:4444/status > /dev/null && exit 0; sleep 1; done
+        cat chromedriver.log; exit 1
+    - name: Integration tests
+      run: cargo test --verbose --tests -- --test-threads=1
