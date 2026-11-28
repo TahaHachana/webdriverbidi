@@ -10,6 +10,10 @@ The webdriverbidi library provides an interface for interacting with web browser
 - Send commands
 - Handle events asynchronously
 
+> **Looking for a driver-less alternative?** [agito](https://github.com/TahaHachana/agito) is a
+> Rust browser automation and testing library that talks to Chromium over the Chrome DevTools
+> Protocol directly, with no WebDriver server (chromedriver, geckodriver, …) in between.
+
 ## Getting Started
 
 ### Prerequisites
